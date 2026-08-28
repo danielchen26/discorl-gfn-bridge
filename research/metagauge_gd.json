@@ -1,0 +1,141 @@
+{
+  "height": 8,
+  "gauge_dim": 49,
+  "inner_steps": 600,
+  "meta_steps": 300,
+  "opt": "gd",
+  "inner_lr": 1.0,
+  "threshold": 0.001,
+  "meta_trace": [
+    {
+      "step": 0,
+      "meta_loss": -0.7812643085456434,
+      "guard": 1.6527890167594705e-12,
+      "grad_norm": 0.015150175471645835
+    },
+    {
+      "step": 30,
+      "meta_loss": -0.7995746845857381,
+      "guard": 1.6647794254254222e-12,
+      "grad_norm": 0.005956934770289412
+    },
+    {
+      "step": 60,
+      "meta_loss": -0.8126630842375606,
+      "guard": 1.6660284263281255e-12,
+      "grad_norm": 0.007471675935512249
+    },
+    {
+      "step": 90,
+      "meta_loss": -0.8702847142821585,
+      "guard": 1.6601442442976122e-12,
+      "grad_norm": 0.044646571221208325
+    },
+    {
+      "step": 120,
+      "meta_loss": -0.9370538654386315,
+      "guard": 1.6307510897206612e-12,
+      "grad_norm": 0.01603327648326094
+    },
+    {
+      "step": 150,
+      "meta_loss": -0.9572947369824006,
+      "guard": 1.619399059293869e-12,
+      "grad_norm": 0.032033471937270575
+    },
+    {
+      "step": 180,
+      "meta_loss": -0.9686830755146784,
+      "guard": 1.6188439477815564e-12,
+      "grad_norm": 0.007592569094471064
+    },
+    {
+      "step": 210,
+      "meta_loss": -0.9727589792877007,
+      "guard": 1.6189549700840189e-12,
+      "grad_norm": 0.005506181346323136
+    },
+    {
+      "step": 240,
+      "meta_loss": -0.9770391487343633,
+      "guard": 1.6188439477815564e-12,
+      "grad_norm": 0.020006042812091535
+    },
+    {
+      "step": 270,
+      "meta_loss": -0.980688792835018,
+      "guard": 1.6190104812352502e-12,
+      "grad_norm": 0.0037034810127726876
+    },
+    {
+      "step": 299,
+      "meta_loss": -0.9827930865256649,
+      "guard": 1.6190659923864814e-12,
+      "grad_norm": 0.02889695054196447
+    }
+  ],
+  "worst_guard": 1.6660284263281255e-12,
+  "results": [
+    {
+      "setting": "train  H=8  std",
+      "height": 8,
+      "reward": "std",
+      "uniform_steps": 601,
+      "learned_steps": 601,
+      "speedup": 1.0,
+      "uniform_final_kl": 0.19987394696331384,
+      "learned_final_kl": 0.16386082285686815,
+      "guard_uniform": 1.6523449275496205e-12,
+      "guard_learned": 1.6190659923864814e-12,
+      "auc_uniform": -0.7812643085456433,
+      "auc_learned": -0.9829273744733538,
+      "auc_gain": 0.20166306592771044
+    },
+    {
+      "setting": "shape  H=8  corners",
+      "height": 8,
+      "reward": "corners",
+      "uniform_steps": 601,
+      "learned_steps": 601,
+      "speedup": 1.0,
+      "uniform_final_kl": 0.07905241955246332,
+      "learned_final_kl": 0.11464505858168024,
+      "guard_uniform": 1.3330309078796176e-12,
+      "guard_learned": 1.4278855875460295e-12,
+      "auc_uniform": -1.2774751088553546,
+      "auc_learned": -1.0508142194302665,
+      "auc_gain": -0.2266608894250881
+    },
+    {
+      "setting": "size   H=16 std",
+      "height": 16,
+      "reward": "std",
+      "uniform_steps": 601,
+      "learned_steps": 601,
+      "speedup": 1.0,
+      "uniform_final_kl": 1.879141080138537,
+      "learned_final_kl": 1.4822352905879201,
+      "guard_uniform": 1.1004322453267434e-12,
+      "guard_learned": 1.0921402671115743e-12,
+      "auc_uniform": 0.9124354397316391,
+      "auc_learned": 0.6435193612028505,
+      "auc_gain": 0.2689160785287886
+    },
+    {
+      "setting": "both   H=16 corners",
+      "height": 16,
+      "reward": "corners",
+      "uniform_steps": 601,
+      "learned_steps": 601,
+      "speedup": 1.0,
+      "uniform_final_kl": 1.6611073468266877,
+      "learned_final_kl": 1.9808582030799922,
+      "guard_uniform": 7.35390914829992e-13,
+      "guard_learned": 7.465382478866189e-13,
+      "auc_uniform": 0.7306453457413862,
+      "auc_learned": 0.8776649424446387,
+      "auc_gain": -0.1470195967032525
+    }
+  ],
+  "verdict": "NO SPEEDUP -- the gauge does not help here"
+}

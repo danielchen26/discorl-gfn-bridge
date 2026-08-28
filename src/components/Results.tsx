@@ -450,7 +450,7 @@ export function KappaResults() {
         <div className="ro locked">
           <span className="k">{zh ? "可梯度化份额 κ²" : "gradient share κ²"}</span>
           <span className="v">{(KARM.kappa_bootstrap ** 2).toFixed(3)}</span>
-          <span className="n">{zh ? "恰好一半" : "exactly one half"}</span>
+          <span className="n">{zh ? "算子层面，非行为层面" : "operator-level, not behavioural"}</span>
         </div>
       </div>
 
@@ -502,8 +502,13 @@ export function KappaResults() {
             是自举的通用代价。
             <br />
             <br />
-            <strong>部分 mapping 因此被量化了:Hodge 投影 Π_sym 保住自举算子 Frobenius 质量的 κ² ={" "}
-            {(KARM.kappa_bootstrap ** 2).toFixed(3)} —— 恰好一半。</strong>
+            <strong>部分 mapping 因此被量化了:Hodge 投影 Π_sym 保住自举<strong>算子</strong>的 Frobenius
+            质量的 κ² = {(KARM.kappa_bootstrap ** 2).toFixed(3)}。</strong>
+            <br />
+            <br />
+            这是关于<strong>算子</strong>的陈述,不是关于<strong>算法行为</strong>的。Frobenius 质量的一半可写成
+            梯度,并不等于「DiscoRL 有一半是 GFlowNet」—— 后者需要把算子层面的劈分连到样本效率或解的质量上,
+            而我们没有做这一步。
           </>
         ) : (
           <>
@@ -521,8 +526,14 @@ export function KappaResults() {
             <br />
             <br />
             <strong>So the partial mapping is quantified: the Hodge projection Π_sym retains κ² ={" "}
-            {(KARM.kappa_bootstrap ** 2).toFixed(3)} of the bootstrap operator's Frobenius mass — exactly
-            one half.</strong>
+            {(KARM.kappa_bootstrap ** 2).toFixed(3)} of the bootstrap <strong>operator's</strong> Frobenius
+            mass.</strong>
+            <br />
+            <br />
+            That is a statement about the <strong>operator</strong>, not about <strong>algorithmic
+            behaviour</strong>. Half the Frobenius mass being expressible as a gradient does not mean "half of
+            DiscoRL is a GFlowNet"; that would require connecting the operator-level split to sample
+            efficiency or solution quality, which we have not done.
           </>
         )}
       </div>

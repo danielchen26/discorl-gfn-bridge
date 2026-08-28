@@ -307,9 +307,15 @@ export default function App({ lang, setLang }: { lang: Lang; setLang: (l: Lang) 
                     而是 p_B 恰好是 p_F 关于测度 F 的<strong>对偶过程</strong>。
                     <br />
                     <br />
-                    所以 W 是 <strong>excess(Hatano–Sasa)熵产</strong>,不是平衡功;
+                    所以 W <strong>具有 excess(非绝热)熵产的结构</strong>,而不是平衡功;
                     <M tex={String.raw`\mathrm{Var}[W]=0`} /> 是<strong>零超额耗散</strong>,而不是零耗散 ——
                     housekeeping 电流(Z 从源流到汇)按构造恒非零,根本不进入平衡残差。
+                    <br />
+                    <br />
+                    <strong>但这个身份只在最优处成立。</strong>Hatano–Sasa 的 excess/housekeeping 劈分要求
+                    p_B 是稳态流的<strong>真</strong>对偶;GFN 的 p_B 是<strong>选</strong>的。两者只在平衡条件
+                    被满足时重合。离开最优,W 只是平衡残差,热力学读法不适用 —— 我们没有在这个设定下证明
+                    Hatano–Sasa 等式,只指出了结构同形。
                     <br />
                     <br />
                     这顺带解释了「GFN 结果依赖 p_B 的选取」:excess 与 housekeeping 的劈分本来就依赖于对偶动力学的选择。
@@ -322,10 +328,17 @@ export default function App({ lang, setLang }: { lang: Lang; setLang: (l: Lang) 
                     current is zero; it says p_B is exactly the <strong>dual</strong> of p_F with respect to F.
                     <br />
                     <br />
-                    So W is the <strong>excess (Hatano–Sasa) entropy production</strong>, not equilibrium work,
-                    and <M tex={String.raw`\mathrm{Var}[W]=0`} /> means <strong>zero excess dissipation</strong>{" "}
-                    — the housekeeping current carrying Z from source to sinks is nonzero by construction and
-                    never enters the balance residual.
+                    So W <strong>has the structure of an excess, non-adiabatic entropy production</strong>
+                    rather than equilibrium work, and <M tex={String.raw`\mathrm{Var}[W]=0`} /> means{" "}
+                    <strong>zero excess dissipation</strong> — the housekeeping current carrying Z from source
+                    to sinks is nonzero by construction and never enters the balance residual.
+                    <br />
+                    <br />
+                    <strong>That identification holds only at the optimum.</strong> The Hatano–Sasa split needs
+                    p_B to be the <strong>true</strong> dual of the stationary flow; a GFlowNet's p_B is{" "}
+                    <strong>chosen</strong>. The two coincide exactly when the balance condition holds. Away
+                    from it W is just a balance residual and the thermodynamic reading does not apply — we have
+                    not proved a Hatano–Sasa equality in this setting, only pointed at the shared structure.
                     <br />
                     <br />
                     That also explains why GFN results depend on the choice of p_B: the excess/housekeeping
@@ -430,9 +443,35 @@ export default function App({ lang, setLang }: { lang: Lang; setLang: (l: Lang) 
             </div>
             <p className="hint">
               {zh
-                ? "第一行是对照组,证明检索式本身有效。后三行为零,说明这个命名下的框架至少未被索引。"
-                : "The first row is the control, proving the query works at all. The remaining zeros say the framing is at least unindexed under these names."}
+                ? "第一行是对照组,证明检索式本身有效。但这个方法本身的可靠性,后来没通过检验 —— 见下。"
+                : "The first row is the control, proving the query works at all. The reliability of the method itself later failed a test — see below."}
             </p>
+            <div className="callout" style={{ borderLeftColor: "var(--rl)" }}>
+              <strong>{zh ? "这个新颖性检查方法不可靠。" : "This novelty check is not reliable."}</strong>{" "}
+              {zh ? (
+                <>
+                  我们后来用同样的方法判定「GFlowNet 的流空间由圈空间张成」未被发表,并据此推了一遍。
+                  <strong>它是发表过的</strong> —— Brunswic et al. AAAI 2024 的 Prop. 4 / Thm. 5,写成{" "}
+                  <M tex={String.raw`\mathcal F_R=F+H^1(G)`} />,更强形式可回溯到 Kalpazidou 2007。
+                  摘要检索找不到它,因为那篇没有用这些字面。
+                  <br />
+                  <br />
+                  所以上表只说明<strong>这些字面组合未被索引</strong>,不说明想法是新的。真正的新颖性判断必须读正文。
+                </>
+              ) : (
+                <>
+                  We later used the same method to conclude that "a GFlowNet's flow space is spanned by the
+                  cycle space" was unpublished, and derived it. <strong>It is published</strong> — Brunswic et
+                  al., AAAI 2024, Prop. 4 / Thm. 5, as{" "}
+                  <M tex={String.raw`\mathcal F_R=F+H^1(G)`} />, with a stronger form going back to Kalpazidou
+                  2007. Abstract search misses it because that paper never uses those words.
+                  <br />
+                  <br />
+                  So the table says only that <strong>these literal strings are unindexed</strong>, not that an
+                  idea is new. A real novelty judgement has to read full text.
+                </>
+              )}
+            </div>
           </div>
         </Section>
 

@@ -114,6 +114,24 @@ export const REFS: Ref[] = [
     url: "https://arxiv.org/abs/2410.02711",
   },
   {
+    id: "brunswic2024",
+    cite: "Brunswic, Li, Xu, Jui, Ma — AAAI 2024",
+    what: {
+      zh: "证明 R-流的集合是由圈空间 H¹(G) 方向的仿射子空间。这**预先占有**了本仓库 research/gauge.py 里的结构结果 —— 我们只多算了它的维数（第一 Betti 数）。更强形式他们归于 Kalpazidou (2007)。",
+      en: "Proves the set of R-flows is an affine subspace directed by the cycle space H¹(G). This **pre-empts** the structural result in research/gauge.py; all we added was its dimension, the first Betti number. They attribute a stronger form to Kalpazidou (2007).",
+    },
+    url: "https://arxiv.org/abs/2312.15246",
+  },
+  {
+    id: "malkin2022tb",
+    cite: "Malkin, Jain, Bengio, Sun, Bengio — NeurIPS 2022",
+    what: {
+      zh: "Trajectory Balance。§3.1 已经陈述任意 p_B 给出同一个 p(x) ∝ R(x)，并且**已经点名**底层无向图的圈是这个多重性的来源。",
+      en: "Trajectory balance. Section 3.1 already states that every backward policy yields the same p(x) ∝ R(x), and already names cycles in the underlying undirected graph as the source of that multiplicity.",
+    },
+    url: "https://arxiv.org/abs/2201.13259",
+  },
+  {
     id: "kawai2007",
     cite: "Kawai, Parrondo, Van den Broeck — Phys. Rev. Lett. 98, 080602 (2007)",
     what: {
@@ -253,6 +271,17 @@ export const LEDGER: Row[] = [
     prov: "published",
     claim: { zh: "平均耗散功 = 前向/反向路径测度的相对熵", en: "Mean dissipated work = relative entropy of the path measures" },
     how: { zh: "Kawai–Parrondo–Van den Broeck 2007", en: "Kawai–Parrondo–Van den Broeck 2007" },
+  },
+  {
+    prov: "published",
+    claim: {
+      zh: "流空间是圈空间方向的仿射子空间 —— 我们以为是新结果，其实已发表",
+      en: "The flow space is an affine subspace directed by the cycle space — we thought this was new; it is published",
+    },
+    how: {
+      zh: "Brunswic et al. AAAI 2024 Prop.4/Thm.5；更强形式见 Kalpazidou 2007。我们只多算了维数 |E|−|V|+1。",
+      en: "Brunswic et al. AAAI 2024, Prop. 4 / Thm. 5; stronger form in Kalpazidou 2007. We only added the dimension |E|−|V|+1.",
+    },
   },
   {
     prov: "mine",

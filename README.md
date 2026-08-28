@@ -66,9 +66,11 @@ $$\langle W_{\rm diss}\rangle=\mathbb E[W]+\log Z=D_{\rm KL}\big(P_F\,\|\,P_B\bi
 
 > **别把它读成平衡态。** GFlowNet 是**非平衡稳态**:flow matching 就是 Kirchhoff 电流律,有源有汇的 DAG 上每条边净电流恒非零,而平衡态要求处处净流为零。GFN 的 "detailed balance" 说的不是净流为零,而是 $p_B$ 恰好是 $p_F$ 关于测度 $F$ 的**对偶过程**。
 >
-> 所以 $W$ 是 **excess(Hatano–Sasa)熵产**,不是平衡功;$\mathrm{Var}[W]=0$ 是**零超额耗散**而非零耗散 —— housekeeping 电流($Z$ 从源流到汇)按构造恒非零,根本不进入平衡残差。
+> 所以 $W$ **具有 excess(非绝热)熵产的结构**,而不是平衡功;$\mathrm{Var}[W]=0$ 是**零超额耗散**而非零耗散 —— housekeeping 电流($Z$ 从源流到汇)按构造恒非零,根本不进入平衡残差。
 >
-> 这也解释了「GFN 结果依赖 $p_B$ 的选取」(Mohammadpour et al.):excess 与 housekeeping 的劈分本来就只相对于一个对偶动力学的选择才有定义 —— 在 NESS 热力学里这是已知歧义(Hatano–Sasa vs Maes–Netočný)。
+> **但这个身份只在最优处成立。** Hatano–Sasa 的 excess/housekeeping 劈分要求 $p_B$ 是稳态流的**真**对偶;GFN 的 $p_B$ 是**选**的。两者只在平衡条件被满足时重合;离开最优,$W$ 只是平衡残差,热力学读法不适用。**我们没有在这个设定下证明 Hatano–Sasa 等式,只指出了结构同形。**
+>
+> 这顺带解释了「GFN 结果依赖 $p_B$ 的选取」(Mohammadpour et al.):劈分只相对于一个对偶动力学的选择才有定义 —— 在 NESS 热力学里这是已知歧义(Hatano–Sasa vs Maes–Netočný)。
 >
 > 桥在文献里是通过 **Doob $h$-变换 / KL 控制**搭的,不是通过 NESS 热力学的语言:
 > $$\log F=\log h=\log z_{\text{desirability}}=-V_{\rm KL}=V_{\rm soft}\big|_{\beta=1}$$
@@ -359,6 +361,22 @@ GFN 的 $\log F$ 现在是**标量回归**,尺度跨几十个数量级,数值条
 而且这不是强版本的决定性检验 —— 这个格子的 $\log F$ 只跨 **5.5 nats**,不是拓展 D 所设想的「几十个数量级」。
 
 > 措辞注意:18/20 是**全程**所有 step>0 的检查点,对应几何均值比 1.64×;1.41× 只对应噪声底**之上**的 11 个点。两者不能交叉引用。
+
+## 4.5 归属更正:规范结果不是新的
+
+`research/gauge.py` 里的流空间结构结果**不是新的**,必须写在前面:
+
+- **Brunswic, Li, Xu, Jui, Ma**, *A Theory of Non-Acyclic Generative Flow Networks*(AAAI 2024,[arXiv:2312.15246](https://arxiv.org/abs/2312.15246)),Prop. 4 / Thm. 5:$\mathcal F_R=F+H^1(G)$ —— R-流的集合是由**圈空间** $H^1(G)$ 方向的仿射子空间。更强形式他们归于 Kalpazidou (2007) Thm 3.3.1。
+- **任意 $p_B$ 给出同一个 $p(x)\propto R(x)$**:标准结论,至少六篇写过,最清楚在 **Malkin et al.**, *Trajectory balance*([arXiv:2201.13259](https://arxiv.org/abs/2201.13259),NeurIPS 2022)§3.1 —— 该文**已经点名**底层无向图的圈是多重性来源。
+- **学 $p_B$ 求性能、正确性按构造保证**:至少五种已发表目标(joint-TB、最大熵、trajectory-likelihood、pessimistic、MDP-consistency),PBP-GFN([arXiv:2405.16012](https://arxiv.org/abs/2405.16012))明确声称正确性按构造保持。
+
+我们只多算了维数 $|E|-|V|+1$(第一 Betti 数,是已发表结果的直接推论)与它同 $p_B$ 参数计数的对应。**这不构成贡献。**
+
+保留 `gauge.py` 的理由只有两条:其数字在别处被引用;以及 **G4 那一项 —— 把 $\mathrm{cond}(I-P_B^\top)$ 作为 $p_B$ 的函数来测 —— 是检索未找到的部分**。而实测效应很小(1.18–1.76×),且 `metagauge.py` 显示学到的规范**不跨奖励形状迁移**(3 种子均值 0.75×)。
+
+### 顺带:我们的新颖性检查方法被证伪了
+
+第 1 节末尾那张 arXiv 摘要计数表,曾被用来支持"这个框架未被索引"。**同一套方法漏掉了 Brunswic** —— 因为那篇用上同调记号写 $H^1(G)$,从不出现 "cycle space" 字面。所以那张表只说明**这些字面组合未被索引**,不说明想法是新的。真正的新颖性判断必须读正文。
 
 ## 5. 证据分层
 

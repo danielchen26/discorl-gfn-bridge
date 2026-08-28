@@ -1,0 +1,76 @@
+{
+  "height": 8,
+  "batch": 48,
+  "rollout_len": 18,
+  "taps": [
+    2,
+    5,
+    9,
+    13
+  ],
+  "arms": [
+    {
+      "arm": "Disco103",
+      "n": 192,
+      "phi_spread": 0.023034641984850168,
+      "alpha_valid_frac": 0.439453125,
+      "beta_mean": -0.006853895727545023,
+      "beta_absmean": 0.006853895727545023,
+      "beta_std": 0.007894902490079403,
+      "placebo_absmean": 0.00029425215325318277,
+      "locality": 23.292593002319336,
+      "alpha_absmean": 0.02124207466840744,
+      "rho_absmean": 0.01320752501487732,
+      "beta_over_alpha": 0.3226566016674042,
+      "beta_over_rho": 0.5189386606216431
+    },
+    {
+      "arm": "random-init seed 0",
+      "n": 192,
+      "phi_spread": 0.00039642151386942714,
+      "alpha_valid_frac": 1.0,
+      "beta_mean": 3.905359699274413e-05,
+      "beta_absmean": 5.141672954778187e-05,
+      "beta_std": 4.1727456846274436e-05,
+      "placebo_absmean": 5.454622169054346e-06,
+      "locality": 9.42626667022705,
+      "alpha_absmean": 0.00015989052189979702,
+      "rho_absmean": 0.0001260785065824166,
+      "beta_over_alpha": 0.3215745985507965,
+      "beta_over_rho": 0.40781518816947937
+    },
+    {
+      "arm": "random-init seed 1",
+      "n": 192,
+      "phi_spread": 0.00026646777041605674,
+      "alpha_valid_frac": 0.9993489583333334,
+      "beta_mean": -4.819777677766979e-05,
+      "beta_absmean": 5.442579640657641e-05,
+      "beta_std": 4.3540439946809784e-05,
+      "placebo_absmean": 1.213952691614395e-05,
+      "locality": 4.483353614807129,
+      "alpha_absmean": 0.0004085643158759922,
+      "rho_absmean": 0.00012847089965362102,
+      "beta_over_alpha": 0.13321231305599213,
+      "beta_over_rho": 0.42364299297332764
+    },
+    {
+      "arm": "random-init seed 2",
+      "n": 192,
+      "phi_spread": 0.0005019697855459526,
+      "alpha_valid_frac": 1.0,
+      "beta_mean": 3.578423638828099e-05,
+      "beta_absmean": 4.210610131849535e-05,
+      "beta_std": 3.770430339500308e-05,
+      "placebo_absmean": 2.36404830502579e-05,
+      "locality": 1.7811014652252197,
+      "alpha_absmean": 8.798916678642854e-05,
+      "rho_absmean": 0.00020469298760872334,
+      "beta_over_alpha": 0.47853732109069824,
+      "beta_over_rho": 0.20570367574691772
+    }
+  ],
+  "null_absmean": 4.931620909095121e-05,
+  "null_absstd": 5.244226120728411e-06,
+  "ratio_to_null": 138.97855725135315
+}

@@ -174,53 +174,59 @@ $$\log F(s)=\text{soft-}V(s)=\log\!\!\sum_{\tau:s\to x}\!e^{R(x)}\prod p_B$$
 
 ---
 
-## 3. 第三层:一个可证伪的猜想
+## 3. 第三层:把猜想真的测了
 
-前提:`disco_rl/update_rules/weights/disco_103.npz`(2.8 MB,Apache-2.0)**已公开**,`colabs/eval.ipynb` 现成。所以这不是空头支票。
+**结论先说:部分。两个方向的强命题都不成立。**
 
-### 为什么选多路径偏差做判别
+### 3.1 更正:第一版提的 γ 实验是错的
 
-区分 GFlowNet 与 MaxEnt RL 的**唯一**决定性诊断,就是多路径偏差:当同一个对象有多条生成路径时,MaxEnt RL 诱导的分布有偏([Deleu et al. 2024](https://arxiv.org/abs/2402.10309))。
+原方案是训练一个 Disco103 agent,再拟合 $p(x)\propto R(x)n(x)^\gamma$。**动手写 harness 时才发现它不成立**:
 
-熵正则化 RL 的最优软策略把 $P(\tau)\propto\pi_0(\tau)R(x)$,所以终态边缘分布被路径丛的参考测度抬高。GFN 用守恒律把它修正回 $p(x)\propto R(x)$。
+DiscoRL **最大化回报**。在 hypergrid 上给终态奖励 $R(x)$,它的最优策略是确定性的 $\arg\max R$ —— $p(x)$ 塌成点质量,γ 根本没有定义。在收敛前测,量到的是「还没收敛」而不是「结构上无偏」。
 
-### 猜想
+γ 仍然有效,但只对**本来就是采样器**的两者(GFlowNet 与 MaxEnt RL),那部分第 1 节已经精确算完。对 DiscoRL,正确的问法是问它的**更新规则**,不是问它收敛到的分布。
 
-在路径数解析可算的 DAG 上,用 Disco103 训练出的 agent,其多路径指数满足
+### 3.2 判据:一个无量纲比值
 
-$$\boxed{0<\gamma_{\rm Disco}<1}\qquad\text{其中}\quad p(x)\propto R(x)\,n(x)^{\gamma}$$
+detailed balance 说状态量由后继和局部转移概率重建;value bootstrap 说 $V(s)=r+\gamma V(s')$,**完全不依赖你走这一步的概率**。差别只在这一条。定义
 
-- **严格小于 1**:$y,z$ 的 KL 结构装得下 detailed balance(第 2 节前四行)。
-- **严格大于 0**:元网络看不到父节点集合(第 2 节第五行)。
+$$\alpha=\frac{\partial\varphi(\hat y_t)}{\partial\varphi(y_{t+1})},\qquad \beta=\frac{\partial\varphi(\hat y_t)}{\partial\log\pi(a_t\mid s_t)},\qquad \rho=\frac{\partial\varphi(\hat y_t)}{\partial r_t}$$
 
-### 怎么量 γ
+其中 $\varphi$ **不是我拟合的探针** —— 它是 Disco103 **自带**的 `y_net`(600→16→1,权重就在 `disco_103.npz` 里),所以这个测量有**零个自由参数**。φ 的单位是任意的,所以判据取无量纲比 $|\beta/\alpha|$:
 
-**这里有个坑,我第一版就踩了。** 直接对 $\log n(x)$ 做一元回归会得到**假的负值**:均匀参考策略下每多走一步就多乘一个 $1/3$,长度效应盖过路径数效应,而在这个格子上长度与 $\log n$ 强相关。
+- detailed balance → $|\beta/\alpha|\approx 1$
+- 纯 value bootstrap → $|\beta/\alpha| = 0$
 
-正确做法是**双变量最小二乘**:
+再加一个**局部性对照**:扰动 $t_0+3$ 处的策略,读 $t_0$ 处的目标。DB 是局部的,这个应当几乎无响应;反向 LSTM 会把后缀信息糊开,没有这个对照就分不清「平衡结构」和「弥散」。
 
-$$\log p(x)-\log R(x)\;\sim\;\big[\log n(x),\;\operatorname{len}(x),\;1\big]$$
+### 3.3 两个方法论陷阱
 
-读 $\log n(x)$ 的系数,即「控制轨迹长度后,路径数对采样概率的抬高」。这样才有:
+1. **autodiff 在这里是假的。** 策略输入带 `stop_grad`(`disco.py:338`),反向模式导数**恒为 0**。第一版探针给出 β = 0.0000 —— 那是**测量失效**,不是结果。前向值不受影响,所以必须用中心差分。
+2. **随机初始化的 agent 测不出任何东西。** Disco103 是对着有能力的 agent 元学出来的;喂它近似均匀的策略和 600 维预测,输出塌成常数,一切灵敏度都读成 0。必须先用 Disco103 自己把 agent 训一段(`--train-steps`)。
 
-- 流匹配 → $\gamma = -0.0000$(本机算出)
-- 软 RL → $\gamma = +0.9788$(本机算出)
+第三个坑,记在这里免得别人再踩:JAX 的 `.at[i]` 对**越界索引静默丢弃**,所以安慰剂 tap 取到轨迹末尾时 hi 与 lo 变成同一个张量,0/0 读出 `nan` 而不是报错。
 
-### 实验设计
+### 3.4 结果
 
-1. hypergrid(路径数 = 二项式系数,解析可算),三组 agent:**Disco103**、**actor-critic 基线**、**GFN-TB**。
-2. 对每组按上式拟合 γ。
-3. 参照点已在本机算好(见上)。
+`.venv/bin/python research/disco_probe.py`,8×8 hypergrid,batch 48,4 个 tap,Disco103 训练 400 步:
 
-**证伪条件**:若 $\gamma_{\rm Disco}$ 与 actor-critic 基线在误差棒内无差异,「Disco103 的预测带 GFN 式语义」这个说法就死了。没有回旋余地。
+| 元参数 | \|β\| | \|α\| | \|β/α\| | 安慰剂 | 局部性 | φ 幅度 |
+|---|---|---|---|---|---|---|
+| **Disco103** | 6.85e-3 | 2.12e-2 | **0.323** | 2.94e-4 | **23.3×** | 2.30e-2 |
+| random-init 0 | 5.14e-5 | 1.60e-4 | 0.322 | 5.45e-6 | 9.4× | 3.96e-4 |
+| random-init 1 | 5.44e-5 | 4.09e-4 | 0.133 | 1.21e-5 | 4.5× | 2.66e-4 |
+| random-init 2 | 4.21e-5 | 8.80e-5 | 0.479 | 2.36e-5 | 1.8× | 5.02e-4 |
 
-### 更便宜的第二探针
+**「y 只是个 value function」被推翻。** β 是随机初始化 null 的 **139×**,而且响应高度**局部**(把扰动挪到三步之后,响应掉到 1/23)。纯 value bootstrap 对所走动作的概率应当**完全**不敏感。
 
-在 $y_\theta(s)$ 的 logits 上拟合线性读出 $g(\cdot)$,测 DB 残差 $g(s)+\log p_F(s'|s)-g(s')-\log p_B(s|s')$ 的方差;对照组是在 categorical value head `q` 上拟合同样的探针。
+**但「y 实现 detailed balance」也不成立。** $|\beta/\alpha| \approx 0.32$,离 DB 要求的 1 差三倍。跨探针配置这个数在 **0.26–0.41** 之间浮动,所以它是个区间,不是常数。
 
-**预言**:$y$ 的最优探针残差显著低于 `q`,且差距随 $n(x)$ 的方差增大。
+### 3.5 必须声明的边界
 
----
+- Disco103 是在 Atari / ProcGen / DMLab 上元学习出来的,这里被喂了一个 8×8 玩具格子 —— **分布外查询**。
+- φ 的单位任意,所以判据只能是比值,不能是 β 本身。
+- 批元素通过 advantage/TD 的 EMA 归一化有 **O(1/B)** 串扰,B=48 时约 2%。
+- 这不是对「DiscoRL 是不是 GFlowNet」的判决,而是对「它的 y 通道离平衡条件有多远」的一次定量读数。
 
 ## 4. 第四层:四条拓展
 
@@ -242,13 +248,25 @@ GFlowNet 圈现在靠人手在 DB / TB / SubTB(λ) / FL-DB 之间挑一个 —�
 
 最大熵 GFN 依赖 $p_B$ 的选取([Mohammadpour et al. 2024](https://arxiv.org/abs/2312.14331));非平衡物理里「最优协议最小化耗散」是个成熟问题。把 $p_B$ 也交给元网络、元目标直接取 $\operatorname{Var}[W]$,一步把这两件事缝成同一个优化问题。
 
-### D. 反向搬运:log F 头改成 categorical
+### D. 反向搬运:log F 头改成 categorical —— **已跑,部分成立**
 
-**这条最便宜、最可能立刻见效。** GFN 的 $\log F$ 现在是**标量回归**,尺度跨几十个数量级,数值条件出了名的差。DiscoRL 规模化成功用的是 categorical + KL(`disco.py:245–247`)。换成固定 support 上的 two-hot / HL-Gauss 分布头,是现代 value learning 里反复验证过的修法。
+GFN 的 $\log F$ 现在是**标量回归**,尺度跨几十个数量级,数值条件出了名的差。DiscoRL 规模化成功用的是 categorical + KL(`disco.py:245-247`)。
 
-不需要任何新理论,一个下午的事。
+`research/logf_head.py` 把这条真跑了。两条臂共用同一个策略网络、优化器、种子、评估点,**只有 flow 读出头不同**:标量线性输出 vs 固定 support 上 51 个 bin 的 softmax 期望。KL 由 DAG 上的动态规划**精确**算出,不是采样估计。
 
----
+| | 标量 log F | categorical two-hot |
+|---|---|---|
+| 领先检查点 | 2/20 | **18/20** |
+| KL 几何均值比(噪声底之上 11 点) | — | **1.41×** 更优 |
+| 梯度范数 p99 | 1.561 | **1.130** |
+| 梯度范数 mean | 0.100 | **0.081** |
+| 末点 KL | 2.75e-5 | 6.90e-5 |
+
+**categorical 头收敛更快、梯度尾更紧**(p99 1.13 vs 1.56 —— 这正是 conditioning 的论断)。**但渐近值并不更好**:两条臂最后都掉进 on-policy 噪声底(1.37e-4 以下),末点顺序是抛硬币,而末点恰好是标量领先。**只看 final KL 会得出与曲线完全相反的结论。**
+
+而且这不是强版本的决定性检验 —— 这个格子的 $\log F$ 只跨 **5.5 nats**,不是拓展 D 所设想的「几十个数量级」。
+
+> 措辞注意:18/20 是**全程**所有 step>0 的检查点,对应几何均值比 1.64×;1.41× 只对应噪声底**之上**的 11 个点。两者不能交叉引用。
 
 ## 5. 证据分层
 
@@ -265,7 +283,10 @@ GFlowNet 圈现在靠人手在 DB / TB / SubTB(λ) / FL-DB 之间挑一个 —�
 | **源码核实** | 元网络从不接收 p_B 或父节点集合 | `disco.py` — 0 匹配 (S4) |
 | **我的综合** | VI = 一阶累积量,TB = 二阶,DiscoRL 元学习这个泛函 | 数学可验(第 1 节);arXiv 共现数 0 |
 | **我的综合** | DB 的四个充分统计量已在元网络输入总线上 | `disco.py:336–393` 逐项对照 |
-| **猜想 · 待验** | Disco103 训练的 agent 落在 0 < γ < 1 | 未测。证伪条件见第 3 节 |
+| **我的综合** | 原 γ 实验设计有缺陷,已由 β 探针替换 | 写 harness 时发现,见 3.1 |
+| **本机跑过** | Disco103 的 y 目标对所走动作的 log 概率有真实且**局部**的响应 | `disco_probe.py` — β 是 null 的 139×,局部性 23.3× |
+| **本机跑过** | 但它**没有**实现 detailed balance | \|β/α\| = 0.32(跨配置 0.26–0.41),DB 要求 ≈1 |
+| **本机跑过** | 拓展 D 部分成立:收敛更快、梯度尾更紧,渐近值不更好 | `logf_head.py` — 18/20 检查点领先,梯度 p99 1.13 vs 1.56 |
 
 ---
 
@@ -284,6 +305,14 @@ python3 research/verify_disco_source.py
 # ③ 浏览器引擎与 Python oracle 逐点比对
 node research/parity.ts
 
+# ④ β 探针：Disco103 的 y 目标离 detailed balance 有多远（需要 JAX，见下）
+python3 -m venv .venv && .venv/bin/pip install "jax[cpu]" dm-haiku rlax distrax chex optax ml_collections
+.venv/bin/pip install git+https://github.com/google-deepmind/disco_rl.git
+cd research && ../.venv/bin/python disco_probe.py --json disco_probe.json
+
+# ⑤ 拓展 D：标量 vs categorical log F 头
+.venv/bin/python research/logf_head.py --json research/logf_head.json
+
 # 交互版
 npm install && npm run dev
 ```
@@ -293,6 +322,9 @@ npm install && npm run dev
 | `research/cumulants.py` | 8×8 hypergrid,12,869 条轨迹,DP 精确算 $\mathbb E[W]$、$\operatorname{Var}[W]$、$\mathbb E[e^{-W}]$、终态分布、γ | 仅标准库 |
 | `research/verify_disco_source.py` | 把关于别人代码的断言写成可执行检查,失败即非零退出 | 仅标准库 + 网络 |
 | `research/parity.ts` | 187 项比较,TS 引擎 vs Python oracle,容差 1e−12 | Node ≥ 22.6 |
+| `research/hypergrid_env.py` | hypergrid 作为 disco_rl jittable 环境 | JAX + disco_rl |
+| `research/disco_probe.py` | β / α / ρ 灵敏度 + 局部性安慰剂,零自由参数 | JAX + disco_rl |
+| `research/logf_head.py` | 标量 vs categorical flow 头,5 种子,精确 KL | JAX |
 
 `.github/workflows/verify.yml` 每周一重跑全部三条 —— 因为第 2 节的断言是关于**别人的仓库**的,会悄悄腐烂。
 

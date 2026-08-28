@@ -13,6 +13,11 @@ import type { Prov } from "../components/ui";
 import type { L, LN } from "../i18n";
 
 import cumulants from "./cumulants.json";
+import probeJson from "./disco_probe.json";
+
+const PROBE_RATIO = probeJson.ratio_to_null;
+const PROBE_LOCALITY = probeJson.arms[0].locality;
+const PROBE_BA = probeJson.arms[0].beta_over_alpha;
 
 export const DISCO_REPO = "google-deepmind/disco_rl";
 export const DISCO_COMMIT = "9059a29f7121d60948f25ef165e08e050e9399c8";
@@ -30,8 +35,8 @@ export const NAV: { id: string; num: string; label: L }[] = [
   { id: "dial", num: "03", label: { zh: "动手:累积量", en: "Rig: cumulants" } },
   { id: "where", num: "04", label: { zh: "DiscoRL 的落点", en: "Where DiscoRL lands" } },
   { id: "gamma", num: "05", label: { zh: "动手:γ", en: "Rig: γ" } },
-  { id: "test", num: "06", label: { zh: "可证伪猜想", en: "The falsifiable claim" } },
-  { id: "next", num: "07", label: { zh: "四条拓展", en: "Four extensions" } },
+  { id: "test", num: "06", label: { zh: "测了:β 探针", en: "Tested: the β probe" } },
+  { id: "next", num: "07", label: { zh: "四条拓展 + D 的结果", en: "Extensions, and D" } },
   { id: "ledger", num: "08", label: { zh: "证据分层", en: "Evidence ledger" } },
   { id: "repro", num: "09", label: { zh: "复现", en: "Reproduce" } },
 ];
@@ -280,11 +285,44 @@ export const LEDGER: Row[] = [
     how: { zh: "disco.py:336–393 的逐项对照", en: "Item-by-item against disco.py:336–393" },
   },
   {
-    prov: "conjecture",
-    claim: { zh: "Disco103 训练的 agent 落在 0 < γ < 1", en: "A Disco103-trained agent lands at 0 < γ < 1" },
+    prov: "mine",
+    claim: {
+      zh: "原 γ 实验设计有缺陷:DiscoRL 最大化回报,p(x) 塌成点质量,γ 无定义",
+      en: "The original γ experiment was ill-posed: DiscoRL maximises return, p(x) degenerates, γ is undefined",
+    },
+    how: { zh: "写 harness 时发现,已由 β 探针替换", en: "Found while writing the harness; replaced by the β probe" },
+  },
+  {
+    prov: "verified",
+    claim: {
+      zh: "Disco103 的 y 目标对所走动作的 log 概率有真实且局部的响应",
+      en: "Disco103's y-target responds to the log-probability of the action taken, and does so locally",
+    },
     how: {
-      zh: "未测。证伪条件:γ 与软 RL 在误差棒内无差异。",
-      en: "Untested. Falsified if γ is indistinguishable from soft RL.",
+      zh: `research/disco_probe.py — |β| 是随机初始化的 ${Math.round(PROBE_RATIO)} 倍，局部性 ${PROBE_LOCALITY.toFixed(0)}×`,
+      en: `research/disco_probe.py — |β| is ${Math.round(PROBE_RATIO)}× the random-init null, locality ${PROBE_LOCALITY.toFixed(0)}×`,
+    },
+  },
+  {
+    prov: "verified",
+    claim: {
+      zh: "但它没有实现 detailed balance:|β/α| 远小于 1",
+      en: "But it does not implement detailed balance: |β/α| is far below 1",
+    },
+    how: {
+      zh: `|β/α| = ${PROBE_BA.toFixed(2)}（跨配置 0.26–0.41），DB 要求 ≈1`,
+      en: `|β/α| = ${PROBE_BA.toFixed(2)} (0.26–0.41 across configurations); detailed balance wants ≈1`,
+    },
+  },
+  {
+    prov: "verified",
+    claim: {
+      zh: "拓展 D 部分成立:categorical flow 头收敛更快、梯度尾更紧,但渐近值不更好",
+      en: "Extension D partly holds: the categorical flow head converges faster with a tighter gradient tail, but no better asymptote",
+    },
+    how: {
+      zh: "research/logf_head.py — 18/20 检查点领先，噪声底之上 11 点几何均值 1.41×，梯度 p99 1.13 vs 1.56",
+      en: "research/logf_head.py — leads 18/20 checkpoints; 1.41x geometric mean over the 11 above the floor; grad p99 1.13 vs 1.56",
     },
   },
 ];

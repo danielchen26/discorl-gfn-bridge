@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import GammaLab from "./components/GammaLab";
 import SourceMatrix from "./components/SourceMatrix";
+import { CorrectionNote, ExtDResults, ProbeResults } from "./components/Results";
 import WorkDial from "./components/WorkDial";
 import { Chip, M, Section, T } from "./components/ui";
 import {
@@ -16,7 +17,10 @@ import {
   REFS,
   RL_ROW,
 } from "./data/facts";
+import probeJson from "./data/disco_probe.json";
 import type { Lang } from "./i18n";
+
+const PROBE = probeJson.arms[0];
 
 const REPO_URL = "https://github.com/danielchen26/discorl-gfn-bridge";
 
@@ -130,9 +134,11 @@ export default function App({ lang, setLang }: { lang: Lang; setLang: (l: Lang) 
               <span className="k">{zh ? "软 RL 的多路径指数 γ" : "the multi-path exponent γ of soft RL"}</span>
             </div>
             <div className="kpi conj">
-              <span className="v">5/5</span>
+              <span className="v">{PROBE.beta_over_alpha.toFixed(2)}</span>
               <span className="k">
-                {zh ? "DiscoRL 源码断言在 pinned commit 上通过" : "DiscoRL source claims passing at the pinned commit"}
+                {zh
+                  ? "Disco103 的 |β/α| — DB 要求 1，纯 value 要求 0"
+                  : "Disco103's |β/α| — detailed balance wants 1, a pure value rule wants 0"}
               </span>
             </div>
           </div>
@@ -485,93 +491,94 @@ export default function App({ lang, setLang }: { lang: Lang; setLang: (l: Lang) 
         <Section
           id="test"
           num="06"
-          title={{ zh: "可证伪的猜想", en: "The falsifiable claim" }}
+          title={{ zh: "把猜想真的测了", en: "The claim, actually tested" }}
           kicker={{
-            zh: "Disco103 的权重是公开的(Apache-2.0,2.8 MB),所以这不是空头支票。",
-            en: "The Disco103 weights are public (Apache-2.0, 2.8 MB), so this is not a promissory note.",
+            zh: "Disco103 的权重是公开的,所以猜想不必停在猜想。结果是「部分」——两个方向的强命题都不成立。",
+            en: "The Disco103 weights are public, so the conjecture did not have to stay one. The answer came back partial: neither strong reading survives.",
           }}
         >
           <div className="body">
-            <div className="callout">
-              <strong>{zh ? "猜想。" : "Conjecture."}</strong>{" "}
+            <CorrectionNote />
+
+            <h3>{zh ? "判据:一个无量纲比值" : "The discriminant: one dimensionless ratio"}</h3>
+            <p>
               {zh ? (
                 <>
-                  在路径数解析可算的 DAG 上,用 Disco103 训练出的 agent,其多路径指数满足{" "}
-                  <M tex={String.raw`0<\gamma_{\rm Disco}<1`} />。
-                  <br />
-                  <strong>严格小于 1</strong>:y/z 的 KL 结构装得下 detailed balance(第 04 节前四行)。
-                  <br />
-                  <strong>严格大于 0</strong>:元网络看不到父节点集合(第 04 节第五行)。
+                  detailed balance 说状态量由后继状态和局部转移概率重建,<M tex={String.raw`\log F(s)=\log F(s')+\log p_B-\log p_F`} />
+                  ;value bootstrap 说 <M tex={String.raw`V(s)=r+\gamma V(s')`} />,
+                  <strong>完全不依赖你走这一步的概率</strong>。差别就在这一条上。
                 </>
               ) : (
                 <>
-                  On a DAG where path counts are analytic, an agent trained by Disco103 has a multi-path
-                  exponent satisfying <M tex={String.raw`0<\gamma_{\rm Disco}<1`} />.
-                  <br />
-                  <strong>Strictly below 1</strong> because the KL structure on y/z can express detailed
-                  balance (first four rows of section 04).
-                  <br />
-                  <strong>Strictly above 0</strong> because the meta-network never sees a parent set (fifth
-                  row).
+                  Detailed balance rebuilds a state quantity from its successor and the local transition
+                  probabilities, <M tex={String.raw`\log F(s)=\log F(s')+\log p_B-\log p_F`} />. A value
+                  bootstrap says <M tex={String.raw`V(s)=r+\gamma V(s')`} />, with{" "}
+                  <strong>no dependence on the probability of the action taken</strong>. That is the whole
+                  difference.
                 </>
               )}
-            </div>
+            </p>
+            <M
+              block
+              tex={String.raw`\alpha=\frac{\partial\varphi(\hat y_t)}{\partial\varphi(y_{t+1})},\qquad \beta=\frac{\partial\varphi(\hat y_t)}{\partial\log\pi(a_t\mid s_t)},\qquad \rho=\frac{\partial\varphi(\hat y_t)}{\partial r_t}`}
+            />
+            <p>
+              {zh ? (
+                <>
+                  φ 不是我拟合的探针 —— 它是 <strong>Disco103 自带的 <code>y_net</code></strong>(600→16→1),
+                  权重就在 <code>disco_103.npz</code> 里,所以这个测量有<strong>零个自由参数</strong>。
+                  DB 要求 |β/α| ≈ 1,纯 value 要求 0。
+                </>
+              ) : (
+                <>
+                  φ is not a probe I fitted — it is <strong>Disco103's own <code>y_net</code></strong>{" "}
+                  (600→16→1), shipped inside <code>disco_103.npz</code>, so the measurement has{" "}
+                  <strong>zero free parameters</strong>. Detailed balance wants |β/α| ≈ 1; a pure value rule
+                  wants 0.
+                </>
+              )}
+            </p>
 
-            <h3>{zh ? "怎么做" : "How to run it"}</h3>
+            <h3>{zh ? "两个方法论陷阱" : "Two methodological traps"}</h3>
             <ol>
-              <li>
-                {zh
-                  ? "hypergrid(路径数 = 二项式系数,解析可算),三组 agent:Disco103、actor-critic 基线、GFN-TB。"
-                  : "A hypergrid (path count = binomial coefficient, analytic). Three arms: Disco103, an actor-critic baseline, GFN-TB."}
-              </li>
               <li>
                 {zh ? (
                   <>
-                    对每组拟合 <M tex={String.raw`\log p(x)-\log R(x)`} /> 关于{" "}
-                    <M tex={String.raw`[\log n(x),\ \mathrm{len}(x),\ 1]`} /> 的回归,读 log n 的系数。
+                    <strong>autodiff 在这里是假的。</strong> 策略输入带 <code>stop_grad</code>
+                    (<code>disco.py:338</code>),反向模式导数恒为 0 —— 第一版探针给出 β = 0.0000,那是测量失效
+                    不是结果。前向值不受影响,所以必须用<strong>中心差分</strong>。
                   </>
                 ) : (
                   <>
-                    For each arm regress <M tex={String.raw`\log p(x)-\log R(x)`} /> on{" "}
-                    <M tex={String.raw`[\log n(x),\ \mathrm{len}(x),\ 1]`} /> and read the coefficient on log n.
+                    <strong>Autodiff lies here.</strong> The policy input carries a <code>stop_grad</code>{" "}
+                    (<code>disco.py:338</code>), so the reverse-mode derivative is identically zero — the first
+                    probe returned β = 0.0000, which was instrument failure, not a result. Forward values are
+                    untouched, so <strong>central differences</strong> are mandatory.
                   </>
                 )}
               </li>
               <li>
-                {zh
-                  ? "参照点已在本机算好:流匹配 γ = 0.0000,软 RL γ = 0.9788。"
-                  : `Reference points are already computed here: flow matching γ = ${GFN_ROW.gamma.toFixed(4)}, soft RL γ = ${RL_ROW.gamma.toFixed(4)}.`}
+                {zh ? (
+                  <>
+                    <strong>随机初始化的 agent 测不出任何东西。</strong> Disco103 是对着有能力的 agent 元学出来的;
+                    喂它近似均匀的策略和预测,输出会塌成常数,一切灵敏度都读成 0。必须先用 Disco103
+                    自己把 agent 训一段。
+                  </>
+                ) : (
+                  <>
+                    <strong>A freshly initialised agent measures nothing.</strong> Disco103 was meta-learned
+                    against competent agents; feed it near-uniform policies and predictions and its outputs
+                    collapse to a constant, reading every sensitivity as zero. The agent has to be trained by
+                    Disco103 first.
+                  </>
+                )}
               </li>
             </ol>
 
-            <h3>{zh ? "证伪条件" : "What kills it"}</h3>
-            <p>
-              {zh
-                ? "若 γ_Disco 与 actor-critic 基线在误差棒内无差异,「Disco103 的预测带 GFN 式语义」这个说法就死了。没有回旋余地。"
-                : "If γ_Disco is indistinguishable from the actor-critic baseline, the claim that Disco103's predictions carry GFN-like semantics is dead. No wiggle room."}
-            </p>
-
-            <h3>{zh ? "更便宜的第二探针" : "A cheaper second probe"}</h3>
-            <p>
-              {zh ? (
-                <>
-                  在 y 的 logits 上拟合线性读出 g(·),测 detailed balance 残差{" "}
-                  <M tex={String.raw`g(s)+\log p_F(s'|s)-g(s')-\log p_B(s|s')`} /> 的方差;对照组是在
-                  categorical value head <code>q</code> 上拟合同样的探针。预言:y 的残差显著更低。
-                </>
-              ) : (
-                <>
-                  Fit a linear readout g(·) on y's logits and measure the variance of the detailed-balance
-                  residual <M tex={String.raw`g(s)+\log p_F(s'|s)-g(s')-\log p_B(s|s')`} />, with the same probe
-                  on the categorical value head <code>q</code> as control. Prediction: y's residual is
-                  materially lower.
-                </>
-              )}
-            </p>
+            <h3>{zh ? "结果" : "What came back"}</h3>
           </div>
+          <ProbeResults />
         </Section>
-
-        {/* ------------------------------------------------------------- 07 */}
         <Section
           id="next"
           num="07"
@@ -594,6 +601,26 @@ export default function App({ lang, setLang }: { lang: Lang; setLang: (l: Lang) 
               </p>
             </div>
           ))}
+          <div className="body">
+            <h3>{zh ? "拓展 D 已经跑了" : "Extension D has been run"}</h3>
+            <p>
+              {zh ? (
+                <>
+                  两条臂共用同一个策略网络、同一个优化器、同一批种子、同一套评估点,<strong>只有 flow
+                  读出头不同</strong>:标量线性输出,对固定 support 上 51 个 bin 的 softmax 期望。
+                  KL 由 DAG 上的动态规划<strong>精确</strong>算出,不是采样估计。
+                </>
+              ) : (
+                <>
+                  Both arms share the policy network, the optimiser, the seeds and the evaluation schedule;{" "}
+                  <strong>only the flow readout differs</strong> — a scalar linear output against a softmax
+                  expectation over 51 bins on a fixed support. KL is computed <strong>exactly</strong> by
+                  dynamic programming over the DAG, never sampled.
+                </>
+              )}
+            </p>
+          </div>
+          <ExtDResults />
         </Section>
 
         {/* ------------------------------------------------------------- 08 */}

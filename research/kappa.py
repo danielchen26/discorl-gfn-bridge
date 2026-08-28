@@ -353,6 +353,34 @@ def main() -> int:
     print(f"\n  Disco103   kappa_boot = {kap:.4f} +/- {se:.4f}   (dim {d})")
     print(f"             |Bw|^2 = {nrm:.3e}   tr(B^2)/||B||^2 = {tr_frac:+.5f}")
 
+    # How much of the WHOLE update is the bootstrap term?
+    #
+    # The field the agent follows is v = p_hat(u) - p(u), so J = B - D with
+    # D = diag(p) - p p^T symmetric. kappa(B) says the bootstrap term is half
+    # circulation; it does NOT say the update is. Without the ratio ||B||/||J||
+    # a reader will conflate the two, and they differ by two orders of
+    # magnitude.
+    def field_D(u):
+        return jax.tree.map(lambda x: jax.nn.softmax(x, axis=-1), u)
+
+    def field_J(u):
+        return jax.tree.map(lambda a, b: a - b, g(u), field_D(u))
+
+    key, k1, k2 = jax.random.split(key, 3)
+    kD, _, _, nD = kappa_of_map(field_D, u0, max(8, args.probes // 4), k1)
+    kJ, seJ, _, nJ = kappa_of_map(field_J, u0, max(8, args.probes // 4), k2)
+    b_over_j = math.sqrt(nrm / max(nJ, 1e-30))
+    asym_share = math.sqrt(max(0.0, 1.0 - kap**2)) * b_over_j
+    arms[0].update({
+        "kappa_D": kD, "kappa_J": kJ, "se_J": seJ,
+        "normJw2": nJ, "B_over_J": b_over_j, "asym_share_of_update": asym_share,
+    })
+    print(f"\n  whole update field J = B - D:")
+    print(f"             kappa(D) = {kD:.4f}  (symmetric, as it must be)")
+    print(f"             kappa(J) = {kJ:.4f} +/- {seJ:.4f}")
+    print(f"             ||B||/||J|| = {b_over_j:.4f}   "
+          f"-> antisymmetric share of the update = {asym_share:.4%}")
+
     print("\n" + "=" * 78)
     print("STEP 3  reading")
     print("=" * 78)

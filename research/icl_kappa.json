@@ -1,0 +1,821 @@
+{
+  "config": {
+    "d": 8,
+    "n_ctx": 12,
+    "layers": 6,
+    "steps": 40000,
+    "batch": 256,
+    "lr": 0.001,
+    "json": "icl_kappa.json"
+  },
+  "controls": {
+    "explicit_gd": {
+      "dim": 12,
+      "kappa": 1.0,
+      "norm_J": 2.094022804769312,
+      "norm_asym": 0.0,
+      "asym_share": 0.0,
+      "imag_share_of_spectrum": 0.0,
+      "n_complex_eigenvalues": 0,
+      "n_eigenvalues": 12,
+      "max_abs_imag": 0.0,
+      "spectral_radius": 0.8091454571872166
+    },
+    "linear_attention_construction": {
+      "dim": 12,
+      "kappa": 1.0,
+      "norm_J": 2.2895121808130945,
+      "norm_asym": 0.0,
+      "asym_share": 0.0,
+      "imag_share_of_spectrum": 1.0262417305591935e-17,
+      "n_complex_eigenvalues": 0,
+      "n_eigenvalues": 12,
+      "max_abs_imag": 2.5552801232543505e-17,
+      "spectral_radius": 1.763434853004572
+    }
+  },
+  "results": {
+    "linear attention": {
+      "loss_start": 1.0067162761691397,
+      "loss_final": 0.1644398747571688,
+      "var_y": 0.9417408500429911,
+      "r2": 0.8253873401056543,
+      "solved": false,
+      "trajectory": [
+        {
+          "step": 800,
+          "loss": 0.7915691859095394,
+          "r2": 0.15946177138497952,
+          "kappa": [
+            0.8159330960711514,
+            0.833607256706817,
+            0.781767169073755,
+            0.9450895669186749,
+            0.9631739009064724,
+            0.9942158161107488
+          ],
+          "complex": [
+            4,
+            4,
+            4,
+            4,
+            2,
+            4
+          ],
+          "imag_share": [
+            0.12687231699802623,
+            0.31151074660581535,
+            0.3307897242635277,
+            0.07643304978919127,
+            0.027944908719995613,
+            0.009112847153361029
+          ]
+        },
+        {
+          "step": 4000,
+          "loss": 0.4937917731197661,
+          "r2": 0.47566066280630803,
+          "kappa": [
+            0.8859552711587014,
+            0.7860699774307893,
+            0.86912489086523,
+            0.9673552972752838,
+            0.967824061277097,
+            0.9382877555944938
+          ],
+          "complex": [
+            4,
+            4,
+            4,
+            4,
+            2,
+            2
+          ],
+          "imag_share": [
+            0.15349110459932505,
+            0.29236278469570476,
+            0.07587055154840304,
+            0.054874988122516656,
+            0.013594672609851805,
+            0.11258443516633625
+          ]
+        },
+        {
+          "step": 12000,
+          "loss": 0.4515016733699078,
+          "r2": 0.5205669655836884,
+          "kappa": [
+            0.7562583209470226,
+            0.9007186724889138,
+            0.8377551533351328,
+            0.9608640028334655,
+            0.8556814124658951,
+            0.9725842188976461
+          ],
+          "complex": [
+            6,
+            4,
+            2,
+            4,
+            2,
+            4
+          ],
+          "imag_share": [
+            0.23111356753392046,
+            0.18353638788859764,
+            0.054254394483746575,
+            0.028276895434747866,
+            0.10785082904649598,
+            0.06404676473528076
+          ]
+        },
+        {
+          "step": 24000,
+          "loss": 0.18663715135642522,
+          "r2": 0.8018168678273805,
+          "kappa": [
+            0.9623414365340509,
+            0.9593390733754306,
+            0.9904146518220736,
+            0.9961948947782,
+            0.9279641511011115,
+            0.9722465176471701
+          ],
+          "complex": [
+            4,
+            4,
+            6,
+            2,
+            2,
+            0
+          ],
+          "imag_share": [
+            0.05981626200578791,
+            0.06723679795326301,
+            0.03524615654215859,
+            0.005123200461833475,
+            0.07337618012913599,
+            0.0
+          ]
+        },
+        {
+          "step": 40000,
+          "loss": 0.1671167146866776,
+          "r2": 0.8225449021574793,
+          "kappa": [
+            0.9950251457173765,
+            0.9870662107986452,
+            0.7403440197040966,
+            0.9976869240600116,
+            0.9305926069726462,
+            0.9779159388706602
+          ],
+          "complex": [
+            2,
+            2,
+            2,
+            0,
+            0,
+            0
+          ],
+          "imag_share": [
+            0.01003006936635557,
+            0.052577207087965164,
+            0.1242017550392251,
+            1.3474647934815316e-17,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "layers": [
+        {
+          "layer": 0,
+          "ctx_y": {
+            "dim": 12,
+            "kappa": 0.9950251457173765,
+            "norm_J": 0.09242425091421413,
+            "norm_asym": 0.009207681929197731,
+            "asym_share": 0.09962409041047106,
+            "imag_share_of_spectrum": 0.01003006936635557,
+            "n_complex_eigenvalues": 2,
+            "n_eigenvalues": 12,
+            "max_abs_imag": 0.0010400593911621752,
+            "spectral_radius": 0.053488408708899114
+          },
+          "all_y": {
+            "dim": 13,
+            "kappa": 0.9954523900331821,
+            "norm_J": 0.11088096868339187,
+            "norm_asym": 0.010562562734015273,
+            "asym_share": 0.09526037569328495,
+            "imag_share_of_spectrum": 7.27546170651285e-18,
+            "n_complex_eigenvalues": 0,
+            "n_eigenvalues": 13,
+            "max_abs_imag": 8.813899557669598e-19,
+            "spectral_radius": 0.07852432321617242
+          },
+          "full": {
+            "dim": 117,
+            "kappa": 0.9691512027398784,
+            "norm_J": 3.3716895172394206,
+            "norm_asym": 0.8310099549536006,
+            "asym_share": 0.24646692724957434,
+            "imag_share_of_spectrum": 0.02354796976405349,
+            "n_complex_eigenvalues": 38,
+            "n_eigenvalues": 117,
+            "max_abs_imag": 0.03551244482938659,
+            "spectral_radius": 0.9873422751771739
+          }
+        },
+        {
+          "layer": 1,
+          "ctx_y": {
+            "dim": 12,
+            "kappa": 0.9870662107986452,
+            "norm_J": 0.021002864204680043,
+            "norm_asym": 0.0033670346277164336,
+            "asym_share": 0.16031311705410928,
+            "imag_share_of_spectrum": 0.052577207087965164,
+            "n_complex_eigenvalues": 2,
+            "n_eigenvalues": 12,
+            "max_abs_imag": 0.0012796534159292775,
+            "spectral_radius": 0.011677508871878085
+          },
+          "all_y": {
+            "dim": 13,
+            "kappa": 0.9891152773478542,
+            "norm_J": 0.023267623712213387,
+            "norm_asym": 0.0034236604975563176,
+            "asym_share": 0.1471426794545937,
+            "imag_share_of_spectrum": 3.1379273360285695e-18,
+            "n_complex_eigenvalues": 0,
+            "n_eigenvalues": 13,
+            "max_abs_imag": 8.590723242111992e-20,
+            "spectral_radius": 0.013569898100282609
+          },
+          "full": {
+            "dim": 117,
+            "kappa": 0.9574493437120402,
+            "norm_J": 5.158950530215229,
+            "norm_asym": 1.488880221702891,
+            "asym_share": 0.28860137599357355,
+            "imag_share_of_spectrum": 0.01948368329334197,
+            "n_complex_eigenvalues": 48,
+            "n_eigenvalues": 117,
+            "max_abs_imag": 0.027889891702483023,
+            "spectral_radius": 1.1239130999204245
+          }
+        },
+        {
+          "layer": 2,
+          "ctx_y": {
+            "dim": 12,
+            "kappa": 0.7403440197040966,
+            "norm_J": 0.0036478292503072016,
+            "norm_asym": 0.0024521736355269707,
+            "asym_share": 0.6722281848363547,
+            "imag_share_of_spectrum": 0.1242017550392251,
+            "n_complex_eigenvalues": 2,
+            "n_eigenvalues": 12,
+            "max_abs_imag": 0.0001714781724003322,
+            "spectral_radius": 0.0010218448848329843
+          },
+          "all_y": {
+            "dim": 13,
+            "kappa": 0.7442048113036394,
+            "norm_J": 0.0038414127184226857,
+            "norm_asym": 0.0025658773657663784,
+            "asym_share": 0.6679514943710468,
+            "imag_share_of_spectrum": 0.07443360685812285,
+            "n_complex_eigenvalues": 2,
+            "n_eigenvalues": 13,
+            "max_abs_imag": 0.00012129610756165025,
+            "spectral_radius": 0.0010446754148574467
+          },
+          "full": {
+            "dim": 117,
+            "kappa": 0.9551127806635943,
+            "norm_J": 4.1875626337090335,
+            "norm_asym": 1.2405337224765496,
+            "asym_share": 0.2962424281109263,
+            "imag_share_of_spectrum": 0.0182398708268375,
+            "n_complex_eigenvalues": 48,
+            "n_eigenvalues": 117,
+            "max_abs_imag": 0.025612033803203385,
+            "spectral_radius": 0.9037489197409023
+          }
+        },
+        {
+          "layer": 3,
+          "ctx_y": {
+            "dim": 12,
+            "kappa": 0.9976869240600116,
+            "norm_J": 4.216972712968299,
+            "norm_asym": 0.286654952799695,
+            "asym_share": 0.06797647798814437,
+            "imag_share_of_spectrum": 1.3474647934815316e-17,
+            "n_complex_eigenvalues": 0,
+            "n_eigenvalues": 12,
+            "max_abs_imag": 7.797439498356445e-17,
+            "spectral_radius": 1.9917681906864468
+          },
+          "all_y": {
+            "dim": 13,
+            "kappa": 0.9971593189225169,
+            "norm_J": 4.515179663366742,
+            "norm_asym": 0.3400890356980096,
+            "asym_share": 0.07532126317304112,
+            "imag_share_of_spectrum": 0.005318548999168633,
+            "n_complex_eigenvalues": 2,
+            "n_eigenvalues": 13,
+            "max_abs_imag": 0.033831921073050775,
+            "spectral_radius": 2.0245192844942226
+          },
+          "full": {
+            "dim": 117,
+            "kappa": 0.7602487344094265,
+            "norm_J": 24.721435399157453,
+            "norm_asym": 16.05983792636366,
+            "asym_share": 0.6496320972895856,
+            "imag_share_of_spectrum": 0.0025679449260414245,
+            "n_complex_eigenvalues": 24,
+            "n_eigenvalues": 117,
+            "max_abs_imag": 0.012044073660370367,
+            "spectral_radius": 2.895489236001007
+          }
+        },
+        {
+          "layer": 4,
+          "ctx_y": {
+            "dim": 12,
+            "kappa": 0.9305926069726462,
+            "norm_J": 0.5234055131088164,
+            "norm_asym": 0.19159601784515332,
+            "asym_share": 0.3660565528000473,
+            "imag_share_of_spectrum": 0.0,
+            "n_complex_eigenvalues": 0,
+            "n_eigenvalues": 12,
+            "max_abs_imag": 0.0,
+            "spectral_radius": 0.3661839530849153
+          },
+          "all_y": {
+            "dim": 13,
+            "kappa": 0.9350692655755531,
+            "norm_J": 0.5820686828995264,
+            "norm_asym": 0.20632300224584188,
+            "asym_share": 0.3544650456335516,
+            "imag_share_of_spectrum": 0.0,
+            "n_complex_eigenvalues": 0,
+            "n_eigenvalues": 13,
+            "max_abs_imag": 0.0,
+            "spectral_radius": 0.3836707091251323
+          },
+          "full": {
+            "dim": 117,
+            "kappa": 0.7251349163752363,
+            "norm_J": 3.859875775611993,
+            "norm_asym": 2.6579367848488586,
+            "asym_share": 0.6886068203652062,
+            "imag_share_of_spectrum": 0.08707377022014239,
+            "n_complex_eigenvalues": 58,
+            "n_eigenvalues": 117,
+            "max_abs_imag": 0.02387535318067342,
+            "spectral_radius": 0.2690885035572339
+          }
+        },
+        {
+          "layer": 5,
+          "ctx_y": {
+            "dim": 12,
+            "kappa": 0.9779159388706602,
+            "norm_J": 2.7312611371263547,
+            "norm_asym": 0.5708297650068243,
+            "asym_share": 0.20899860406881932,
+            "imag_share_of_spectrum": 0.0,
+            "n_complex_eigenvalues": 0,
+            "n_eigenvalues": 12,
+            "max_abs_imag": 0.0,
+            "spectral_radius": 1.9246327855677015
+          },
+          "all_y": {
+            "dim": 13,
+            "kappa": 0.9572548894615777,
+            "norm_J": 2.920832207497489,
+            "norm_asym": 0.844838164687339,
+            "asym_share": 0.28924570282357287,
+            "imag_share_of_spectrum": 0.014805009246698128,
+            "n_complex_eigenvalues": 2,
+            "n_eigenvalues": 13,
+            "max_abs_imag": 0.05249658797327759,
+            "spectral_radius": 1.9487815050272925
+          },
+          "full": {
+            "dim": 117,
+            "kappa": 0.7457133899088458,
+            "norm_J": 8.00462027763088,
+            "norm_asym": 5.333213286208244,
+            "asym_share": 0.6662668685374181,
+            "imag_share_of_spectrum": 0.02540800597078091,
+            "n_complex_eigenvalues": 90,
+            "n_eigenvalues": 117,
+            "max_abs_imag": 0.05458195171663231,
+            "spectral_radius": 1.9606594207211772
+          }
+        }
+      ],
+      "verdict": "INCONCLUSIVE -- the model has not solved the task"
+    },
+    "softmax attention": {
+      "loss_start": 0.9861142550221478,
+      "loss_final": 0.14343954053256586,
+      "var_y": 0.9417408500429911,
+      "r2": 0.8476868232635149,
+      "solved": false,
+      "trajectory": [
+        {
+          "step": 800,
+          "loss": 0.47797800525388,
+          "r2": 0.4924527217524227,
+          "kappa": [
+            0.9273061720472265,
+            0.9054997598454274,
+            0.9603249658159734,
+            0.9864970346006123,
+            0.9486491348875962,
+            0.9422350517308609
+          ],
+          "complex": [
+            4,
+            4,
+            0,
+            6,
+            6,
+            2
+          ],
+          "imag_share": [
+            0.03781156967415692,
+            0.030478263376111505,
+            0.0,
+            0.016235434622426555,
+            0.0522324789983561,
+            0.02941695620013763
+          ]
+        },
+        {
+          "step": 4000,
+          "loss": 0.32199083867907147,
+          "r2": 0.6580897614621131,
+          "kappa": [
+            0.969699184719535,
+            0.9770176629221633,
+            0.962475043696015,
+            0.9906956100108839,
+            0.9885105931839863,
+            0.9690341491783749
+          ],
+          "complex": [
+            4,
+            0,
+            4,
+            0,
+            2,
+            0
+          ],
+          "imag_share": [
+            0.027815557720409195,
+            0.0,
+            0.00934596418468291,
+            0.0,
+            0.004401209145447483,
+            0.0
+          ]
+        },
+        {
+          "step": 12000,
+          "loss": 0.22609958819046422,
+          "r2": 0.7599131563846437,
+          "kappa": [
+            0.9900938367901692,
+            0.9926019684290508,
+            0.9977242563519755,
+            0.9923638764321113,
+            0.9761507335998573,
+            0.9594290589042166
+          ],
+          "complex": [
+            0,
+            2,
+            4,
+            0,
+            0,
+            4
+          ],
+          "imag_share": [
+            0.0,
+            0.002851482464830399,
+            0.013847868237795775,
+            0.0,
+            0.0,
+            0.016943422222316554
+          ]
+        },
+        {
+          "step": 24000,
+          "loss": 0.18803790102236181,
+          "r2": 0.8003294632342032,
+          "kappa": [
+            0.9913399111123994,
+            0.997280494807046,
+            0.9982049578256591,
+            0.9952093227256277,
+            0.8034080300896368,
+            0.9643841513385087
+          ],
+          "complex": [
+            0,
+            2,
+            2,
+            2,
+            4,
+            2
+          ],
+          "imag_share": [
+            0.0,
+            0.0005757105338610849,
+            0.0026900503117503216,
+            0.002929719891680606,
+            0.04051097042750541,
+            0.04413916797929558
+          ]
+        },
+        {
+          "step": 40000,
+          "loss": 0.14114096757277209,
+          "r2": 0.8501275934177339,
+          "kappa": [
+            0.9899745108841425,
+            0.9962614628775027,
+            0.9977227533161324,
+            0.9980818442596964,
+            0.9934288208261973,
+            0.9624410742993711
+          ],
+          "complex": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            2
+          ],
+          "imag_share": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0066819664934901785
+          ]
+        }
+      ],
+      "layers": [
+        {
+          "layer": 0,
+          "ctx_y": {
+            "dim": 12,
+            "kappa": 0.9899745108841425,
+            "norm_J": 1.5868566410410776,
+            "norm_asym": 0.22413735132133603,
+            "asym_share": 0.14124612490154614,
+            "imag_share_of_spectrum": 0.0,
+            "n_complex_eigenvalues": 0,
+            "n_eigenvalues": 12,
+            "max_abs_imag": 0.0,
+            "spectral_radius": 0.7741297681229642
+          },
+          "all_y": {
+            "dim": 13,
+            "kappa": 0.9898417897093268,
+            "norm_J": 1.6302833123783051,
+            "norm_asym": 0.23178266736373077,
+            "asym_share": 0.14217324412503457,
+            "imag_share_of_spectrum": 0.0,
+            "n_complex_eigenvalues": 0,
+            "n_eigenvalues": 13,
+            "max_abs_imag": 0.0,
+            "spectral_radius": 0.7915952981180268
+          },
+          "full": {
+            "dim": 117,
+            "kappa": 0.9808503884486537,
+            "norm_J": 5.40489708467169,
+            "norm_asym": 1.052672435029048,
+            "asym_share": 0.19476271583679755,
+            "imag_share_of_spectrum": 0.009020070702664171,
+            "n_complex_eigenvalues": 54,
+            "n_eigenvalues": 117,
+            "max_abs_imag": 0.036687269435094226,
+            "spectral_radius": 1.411355858709003
+          }
+        },
+        {
+          "layer": 1,
+          "ctx_y": {
+            "dim": 12,
+            "kappa": 0.9962614628775027,
+            "norm_J": 1.5051889838344739,
+            "norm_asym": 0.13003210446984137,
+            "asym_share": 0.08638922146412749,
+            "imag_share_of_spectrum": 0.0,
+            "n_complex_eigenvalues": 0,
+            "n_eigenvalues": 12,
+            "max_abs_imag": 0.0,
+            "spectral_radius": 1.151983664758954
+          },
+          "all_y": {
+            "dim": 13,
+            "kappa": 0.9961268968790098,
+            "norm_J": 1.5956686638338466,
+            "norm_asym": 0.1403027940135648,
+            "asym_share": 0.08792727286908368,
+            "imag_share_of_spectrum": 0.0,
+            "n_complex_eigenvalues": 0,
+            "n_eigenvalues": 13,
+            "max_abs_imag": 0.0,
+            "spectral_radius": 1.24449331174526
+          },
+          "full": {
+            "dim": 117,
+            "kappa": 0.9879229429399415,
+            "norm_J": 6.038272185638882,
+            "norm_asym": 0.935606042126435,
+            "asym_share": 0.1549459867595291,
+            "imag_share_of_spectrum": 0.005103965759112757,
+            "n_complex_eigenvalues": 26,
+            "n_eigenvalues": 117,
+            "max_abs_imag": 0.02939481472586416,
+            "spectral_radius": 1.3656833554922063
+          }
+        },
+        {
+          "layer": 2,
+          "ctx_y": {
+            "dim": 12,
+            "kappa": 0.9977227533161324,
+            "norm_J": 6.944295094446347,
+            "norm_asym": 0.46838266671515055,
+            "asym_share": 0.06744855458255747,
+            "imag_share_of_spectrum": 0.0,
+            "n_complex_eigenvalues": 0,
+            "n_eigenvalues": 12,
+            "max_abs_imag": 0.0,
+            "spectral_radius": 6.7643626887250825
+          },
+          "all_y": {
+            "dim": 13,
+            "kappa": 0.9973163568601277,
+            "norm_J": 7.461150076675296,
+            "norm_asym": 0.5462501726887106,
+            "asym_share": 0.07321259686175897,
+            "imag_share_of_spectrum": 0.0,
+            "n_complex_eigenvalues": 0,
+            "n_eigenvalues": 13,
+            "max_abs_imag": 0.0,
+            "spectral_radius": 7.263699921026712
+          },
+          "full": {
+            "dim": 117,
+            "kappa": 0.7205475317488168,
+            "norm_J": 68.2501399342144,
+            "norm_asym": 47.32502570644797,
+            "asym_share": 0.6934055483558578,
+            "imag_share_of_spectrum": 0.043811695103067046,
+            "n_complex_eigenvalues": 54,
+            "n_eigenvalues": 117,
+            "max_abs_imag": 0.5294711421693575,
+            "spectral_radius": 8.015402629237897
+          }
+        },
+        {
+          "layer": 3,
+          "ctx_y": {
+            "dim": 12,
+            "kappa": 0.9980818442596964,
+            "norm_J": 1.2363242023406147,
+            "norm_asym": 0.0765386751995424,
+            "asym_share": 0.06190825598547616,
+            "imag_share_of_spectrum": 0.0,
+            "n_complex_eigenvalues": 0,
+            "n_eigenvalues": 12,
+            "max_abs_imag": 0.0,
+            "spectral_radius": 0.7402460660101845
+          },
+          "all_y": {
+            "dim": 13,
+            "kappa": 0.9975502537106586,
+            "norm_J": 1.2988691051733998,
+            "norm_asym": 0.0908604321461794,
+            "asym_share": 0.06995349399279882,
+            "imag_share_of_spectrum": 0.0,
+            "n_complex_eigenvalues": 0,
+            "n_eigenvalues": 13,
+            "max_abs_imag": 0.0,
+            "spectral_radius": 0.7791891121896919
+          },
+          "full": {
+            "dim": 117,
+            "kappa": 0.8150201245930877,
+            "norm_J": 6.202200794385918,
+            "norm_asym": 3.59375764545337,
+            "asym_share": 0.5794326505369436,
+            "imag_share_of_spectrum": 0.017165077495313753,
+            "n_complex_eigenvalues": 62,
+            "n_eigenvalues": 117,
+            "max_abs_imag": 0.02261354240827884,
+            "spectral_radius": 1.2345689982392418
+          }
+        },
+        {
+          "layer": 4,
+          "ctx_y": {
+            "dim": 12,
+            "kappa": 0.9934288208261973,
+            "norm_J": 4.623196896871905,
+            "norm_asym": 0.5291324679640104,
+            "asym_share": 0.11445164023233058,
+            "imag_share_of_spectrum": 0.0,
+            "n_complex_eigenvalues": 0,
+            "n_eigenvalues": 12,
+            "max_abs_imag": 0.0,
+            "spectral_radius": 2.1012763549291313
+          },
+          "all_y": {
+            "dim": 13,
+            "kappa": 0.9942529557533543,
+            "norm_J": 4.997549785156362,
+            "norm_asym": 0.5350193899357919,
+            "asym_share": 0.10705634019392811,
+            "imag_share_of_spectrum": 0.0012580574321110313,
+            "n_complex_eigenvalues": 2,
+            "n_eigenvalues": 13,
+            "max_abs_imag": 0.01038613760223308,
+            "spectral_radius": 2.2339531872273724
+          },
+          "full": {
+            "dim": 117,
+            "kappa": 0.8642925523503372,
+            "norm_J": 7.356645124665965,
+            "norm_asym": 3.7003148641891555,
+            "asym_share": 0.5029894471574325,
+            "imag_share_of_spectrum": 0.062284996309741714,
+            "n_complex_eigenvalues": 60,
+            "n_eigenvalues": 117,
+            "max_abs_imag": 0.19738294822212454,
+            "spectral_radius": 2.084735779152041
+          }
+        },
+        {
+          "layer": 5,
+          "ctx_y": {
+            "dim": 12,
+            "kappa": 0.9624410742993711,
+            "norm_J": 0.46687187424776877,
+            "norm_asym": 0.1267513533044016,
+            "asym_share": 0.2714906600630534,
+            "imag_share_of_spectrum": 0.0066819664934901785,
+            "n_complex_eigenvalues": 2,
+            "n_eigenvalues": 12,
+            "max_abs_imag": 0.00399694735302619,
+            "spectral_radius": 0.29735660215172754
+          },
+          "all_y": {
+            "dim": 13,
+            "kappa": 0.963211946150443,
+            "norm_J": 0.4749422188973736,
+            "norm_asym": 0.12763734967425275,
+            "asym_share": 0.26874290091661207,
+            "imag_share_of_spectrum": 0.006638295570651662,
+            "n_complex_eigenvalues": 2,
+            "n_eigenvalues": 13,
+            "max_abs_imag": 0.004247484776512578,
+            "spectral_radius": 0.2974953051183737
+          },
+          "full": {
+            "dim": 117,
+            "kappa": 0.7181226094329108,
+            "norm_J": 2.8555657728835837,
+            "norm_asym": 1.9872356312622927,
+            "asym_share": 0.6959166026337257,
+            "imag_share_of_spectrum": 0.12459240623165825,
+            "n_complex_eigenvalues": 78,
+            "n_eigenvalues": 117,
+            "max_abs_imag": 0.017272931259759837,
+            "spectral_radius": 0.3343198094123392
+          }
+        }
+      ],
+      "verdict": "INCONCLUSIVE -- the model has not solved the task"
+    }
+  }
+}

@@ -53,9 +53,13 @@ answer lands, and returning exactly $1.0000$ for a genuine gradient.
 
 Across six configurations --- two environments, one of them from Disco103's own
 meta-training family, and training lengths spanning a factor of sixteen ---
-$\kappa = 0.7084$ to $0.7094$, against a floor of $0.70711$. Disco103's update
+$\kappa(B) = 0.7084$ to $0.7094$, against a floor of $0.70711$. Disco103's update
 is therefore not the gradient of any functional, and it carries no more
-circulation than causal bootstrapping forces. Three probes of what the
+circulation than causal bootstrapping forces. It is also, and this matters for
+how the first sentence should be read, barely non-conservative: the bootstrap
+term is $1.1\%$ of the update field in Frobenius norm, so the antisymmetric
+share of the whole update is $0.77\%$. The obstruction is structural and small,
+and reporting either half alone misleads. Three probes of what the
 discovered predictions represent all return nothing, against a positive control
 that works. We report the traps that silently return the wrong answer, and two
 claims of our own that we withdrew.
@@ -284,12 +288,39 @@ causal bootstrap. The excess is nonzero and increases monotonically with trainin
 length in both environments, consistent with the diagonal block that the paired
 $(y_t, y_{t+1})$ input creates, but it remains within resolution throughout.
 
-\paragraph{What can be said about the conservative part.} By orthogonality of
-$\sym$ and $\asym$, the Hodge projection onto the conservative sector retains
-$\kappa^2 \approx 0.502$ of the operator's Frobenius mass. We state this at the
-level of the \emph{operator} only. Connecting an operator-mass split to sample
-efficiency or solution quality is work we have not done, and the number should
-not be read as ``half of DiscoRL is a gradient method''.
+\paragraph{How much of the update is this?} $\kappa(B)$ is a property of the
+bootstrap term, not of the update. The field the agent follows is
+$v = \hat p - p$, so $J = B - D$ with $D$ symmetric, and $D$ is much the larger
+of the two. Measuring all three operators on the same probes gives
+$\kappa(D) = 1.0000$, as it must; $\lVert B\rVert_F / \lVert J \rVert_F =
+0.0110$; and therefore an antisymmetric share of the whole update of
+\begin{equation}
+  \frac{\lVert \asym J\rVert_F}{\lVert J \rVert_F}
+  = \sqrt{1 - \kappa(B)^2}\;\frac{\lVert B\rVert_F}{\lVert J\rVert_F}
+  = 0.77\%.
+\end{equation}
+Both statements are true and they are not the same statement. The bootstrap term
+is half circulation; the bootstrap term is one percent of the update. A reader
+who takes $\kappa(B) = 0.709$ to mean ``the update is half non-conservative'' is
+wrong by two orders of magnitude, and we would rather supply the second number
+than rely on the first being read carefully.
+
+\paragraph{What survives, and what deflates.} The qualitative claim is
+untouched: $0.77\%$ is not zero, so no potential exists, no Lyapunov function is
+guaranteed, and the search for an implicit objective is a search for something
+that is not there. What deflates is the expected magnitude of any consequence.
+A field within one percent of conservative, with a strongly contracting
+symmetric part, is a small perturbation of a gradient flow, and one should
+predict a correspondingly small behavioural effect. We regard this as the more
+useful pair of facts: the diagnosis is structurally sound \emph{and}
+quantitatively bounded. Reporting only $\kappa(B)$ would have made a
+one-percent effect sound like a fifty-percent one.
+
+\paragraph{On the Hodge projection.} By orthogonality of $\sym$ and $\asym$,
+the projection onto the conservative sector retains $\kappa^2 \approx 0.502$ of
+the \emph{bootstrap operator's} Frobenius mass, and $99.994\%$ of the update
+field's. Neither number has been connected to sample efficiency or solution
+quality, which is work we have not done.
 
 \section{What do the discovered predictions represent?}
 
@@ -402,9 +433,12 @@ stable across a sixteen-fold range of training length, it is a local quantity.
 The probe restricts to the prediction channels the agent loss touches and holds
 the Polyak-delayed target network fixed, which is faithful within one update but
 suppresses one dependency. Batch elements couple at $O(1/B)$ through the
-advantage and TD normalisers. Finally, the conservative-mass statement
-$\kappa^2 \approx 0.5$ is an operator-level fact with no demonstrated behavioural
-consequence.
+advantage and TD normalisers. Finally, both conservative-mass statements --- $\kappa(B)^2 \approx 0.5$ for the
+bootstrap term and a $0.77\%$ antisymmetric share for the update --- are
+operator-level facts with no demonstrated behavioural consequence. The natural
+next step is the counterfactual: let the gradient flow through the target as
+well, which makes the update conservative by construction, and measure what
+performance changes. The magnitudes above predict that little will.
 
 \section{Reproducibility}
 

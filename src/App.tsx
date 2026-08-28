@@ -75,6 +75,10 @@ export default function App({ lang, setLang }: { lang: Lang; setLang: (l: Lang) 
         <div className="rail-foot">
           {zh ? "全部数字由 research/ 下的脚本产生" : "every number comes from a script in research/"}
           <br />
+          <a href={`${import.meta.env.BASE_URL}kappa.pdf`} target="_blank" rel="noreferrer">
+            paper (pdf) ↗
+          </a>
+          <br />
           <a href={REPO_URL} target="_blank" rel="noreferrer">
             source ↗
           </a>

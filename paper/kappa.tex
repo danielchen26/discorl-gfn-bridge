@@ -1,0 +1,455 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1.05in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xcolor}
+
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+
+\newcommand{\sym}{\operatorname{sym}}
+\newcommand{\asym}{\operatorname{asym}}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\KL}{D_{\mathrm{KL}}}
+
+\title{\bf Does a Discovered Reinforcement Learning Rule\\ Minimise Anything?\\[2mm]
+\large A gradient-field audit of DiscoRL}
+
+\author{Tianchi Chen}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+DiscoRL replaces a hand-written reinforcement learning update with a
+meta-learned one, and the meta-parameters of its strongest rule, Disco103, are
+public. That makes a question askable that could not be asked of a rule nobody
+had written down: \emph{is the discovered update the gradient of anything?} The
+question is not rhetorical. By the Poincar\'e lemma a vector field is a gradient
+exactly when its Jacobian is symmetric, so ``which objective does this rule
+minimise'' is well posed only if a single scalar, $\kappa = \lVert \sym
+J\rVert_F / \lVert J \rVert_F$, equals one.
+
+We measure it. Working in prediction space rather than parameter space, the
+non-conservative part of the field is isolated in the bootstrap operator
+$B = \partial \hat p / \partial u$ --- precisely the term \texttt{stop\_gradient}
+discards --- and we estimate $\kappa(B)$ by paired Hutchinson probes through a
+single forward map. Two things make the number readable. First, an analytic
+reference: a \emph{causal} bootstrap, whose target reads only the future, is
+strictly triangular, so $\tr(B^2) = 0$ and $\kappa = 1/\sqrt 2$ exactly, in any
+dimension. Second, an estimator validated before it is believed, on synthetic
+fields spanning $\kappa \in [0.025, 1]$ and again in the narrow band where the
+answer lands, and returning exactly $1.0000$ for a genuine gradient.
+
+Across six configurations --- two environments, one of them from Disco103's own
+meta-training family, and training lengths spanning a factor of sixteen ---
+$\kappa = 0.7084$ to $0.7094$, against a floor of $0.70711$. Disco103's update
+is therefore not the gradient of any functional, and it carries no more
+circulation than causal bootstrapping forces. Three probes of what the
+discovered predictions represent all return nothing, against a positive control
+that works. We report the traps that silently return the wrong answer, and two
+claims of our own that we withdrew.
+\end{abstract}
+
+\section{Introduction}
+
+A reinforcement learning algorithm is usually an equation. DiscoRL
+\cite{oh2025disco} replaces the equation with a network: a meta-network reads a
+trajectory and emits targets, the agent regresses onto them, and the
+meta-network itself is trained by meta-gradient across a population of agents.
+The resulting rule, Disco103, matches or beats hand-designed algorithms on
+Atari, ProcGen and DMLab, and generalises to environments never seen during
+discovery. Its meta-parameters ship under an open licence.
+
+That artefact makes a structural question concrete. Hand-designed rules come
+with a story about what they optimise --- policy gradient ascends expected
+return, trajectory balance \cite{malkin2022tb} descends an explicit residual.
+A discovered rule comes with no such story. It is natural to ask which objective
+it implicitly minimises, and a good deal of theory would follow if one could
+name it.
+
+The question presupposes that an objective exists. It need not. Temporal
+difference learning famously is not the gradient of any function: the target is
+held fixed when the gradient is taken, and the discarded term is what a genuine
+gradient would have included \cite{baird1995residual,sutton2009gtd}. DiscoRL is
+built the same way --- produce a target, regress onto it --- so the
+presupposition has to be tested rather than assumed.
+
+By the Poincar\'e lemma the test reduces to one scalar. On a simply connected
+domain a smooth field $v$ is $-\nabla \Phi$ for some $\Phi$ if and only if its
+Jacobian is symmetric everywhere. Writing $\sym M = (M + M^\top)/2$ and
+$\asym M = (M - M^\top)/2$, and noting that these are orthogonal in the Frobenius
+inner product, define
+\begin{equation}
+  \kappa(M) \;=\; \frac{\lVert \sym M \rVert_F}{\lVert M \rVert_F},
+  \qquad \kappa = 1 \iff M \text{ symmetric}.
+  \label{eq:kappa}
+\end{equation}
+This paper measures $\kappa$ for Disco103.
+
+\paragraph{Contributions.}
+\begin{enumerate}\itemsep2pt
+\item An analytic reference scale. Any bootstrap whose target reads only the
+future is strictly triangular, hence has $\kappa = 1/\sqrt 2$ exactly,
+independent of dimension and of every other detail (Proposition~\ref{prop:floor}).
+Without it a measured $\kappa$ is uninterpretable.
+\item A measurement procedure that survives three traps, each of which returns a
+confidently wrong answer rather than an error (Section~\ref{sec:traps}), with an
+estimator validated twice before use.
+\item The measurement: $\kappa = 0.7084$--$0.7094$ over six configurations,
+including the environment family Disco103 was meta-trained on. The update is not
+a gradient field, and sits on the causal floor.
+\item Three negative probes of what the discovered predictions carry, with a
+positive control that works, bounding how strongly the negatives may be read.
+\item A withdrawal section. Two interpretations we published in an earlier draft
+of this work were wrong, and we say which and why.
+\end{enumerate}
+
+\section{The field and where its asymmetry lives}
+
+DiscoRL's per-step agent loss is a sum of categorical Kullback--Leibler terms
+between meta-network targets and agent predictions,
+\begin{equation}
+  \mathcal{L}_\theta = c_\pi \KL(\hat\pi \Vert \pi_\theta)
+  + c_y \KL(\hat y \Vert y_\theta)
+  + c_z \KL(\hat z \Vert z_\theta(\cdot, a)) + \cdots
+  \label{eq:loss}
+\end{equation}
+with $y$ and $z$ carrying no predefined semantics. In the released
+implementation $\hat\pi, \hat y, \hat z$ are wrapped in a stop-gradient when the
+agent update is taken, so the update is a \emph{semi}-gradient.
+
+We work in prediction space rather than parameter space. This is legitimate and
+also convenient. If a field is a gradient in prediction space it pulls back to a
+gradient in parameter space, since $-(\partial u / \partial\theta)^\top \nabla_u
+\Phi = -\nabla_\theta \Phi(u(\theta))$, so the same question is being asked; and
+prediction space needs only \emph{first} derivatives of the target map, which
+matters for reasons given in Section~\ref{sec:traps}.
+
+Write $u$ for the prediction logits and $p = \operatorname{softmax}(u)$. The
+gradient of a categorical KL with respect to the prediction logits, target held
+fixed, is the familiar difference of probabilities, so the field is
+\begin{equation}
+  v(u) \;=\; \hat p(u) - p(u), \qquad
+  J \;=\; \underbrace{\frac{\partial \hat p}{\partial u}}_{=: B}
+  \;-\; \underbrace{\frac{\partial p}{\partial u}}_{=\, \mathrm{diag}(p) - pp^\top}.
+  \label{eq:field}
+\end{equation}
+The second term is symmetric, always. Every departure from a gradient field
+therefore lives in $B$, the dependence of the target on the prediction --- which
+is exactly the term the stop-gradient discards. The measurement is $\kappa(B)$.
+
+\subsection{An analytic floor}
+
+\begin{proposition}\label{prop:floor}
+For any square $M$,
+$\lVert M \pm M^\top\rVert_F^2 = 2\lVert M\rVert_F^2 \pm 2\tr(M^2)$, hence
+\begin{equation}
+  \kappa(M)^2 \;=\; \tfrac12 \;+\; \frac{\tr(M^2)}{2\lVert M \rVert_F^2}.
+  \label{eq:kappa-tr}
+\end{equation}
+If $M$ is strictly triangular in some ordering then $M^2$ is strictly triangular,
+so $\tr(M^2) = 0$ and $\kappa(M) = 1/\sqrt 2$ exactly.
+\end{proposition}
+
+\begin{proof}
+$\langle M, M^\top\rangle_F = \tr(M^\top M^\top) = \tr((M^2)^\top) = \tr(M^2)$,
+and expanding $\lVert M \pm M^\top \rVert_F^2$ gives the identity.
+Equation~\eqref{eq:kappa-tr} follows from
+$\kappa^2 = \lVert M + M^\top\rVert^2 / (\lVert M + M^\top\rVert^2 + \lVert M -
+M^\top\rVert^2)$. Strict triangularity gives a nilpotent $M$ with zero diagonal,
+so $\tr(M^2) = \sum_{ij} M_{ij}M_{ji} = 0$.
+\end{proof}
+
+\begin{remark}
+A \emph{causal} bootstrap --- one whose target at index $t$ depends only on
+indices after $t$ --- is strictly triangular in the time ordering. So
+$\kappa = 1/\sqrt 2 \approx 0.70711$ is the structural floor imposed by the arrow
+of time in credit assignment, and it is dimension-free. Tabular TD is the
+canonical instance: its target map is $\hat V = r + \gamma P V$, so $B = \gamma P$
+and on any acyclic graph $\kappa = 1/\sqrt 2$.
+\end{remark}
+
+The floor is not forced for DiscoRL. Its meta-network receives its own $y$ at
+index $t$ as an input --- the released input specification pairs $y_t$ with
+$y_{t+1}$ --- so $B$ has a nonzero diagonal block and $\tr(B^2) \neq 0$ in
+general. Whether Disco103 nonetheless sits on the floor is an empirical question,
+and by \eqref{eq:kappa-tr} the excess over the floor is measurable directly as
+$\tr(B^2)/\lVert B\rVert_F^2 = 2\kappa^2 - 1$.
+
+\subsection{Estimator}
+
+Frobenius norms come from paired Hutchinson probes: for $w \sim \mathcal N(0, I)$,
+$\lVert M \rVert_F^2 = \E_w \lVert M w\rVert^2$, with $Bw$ from a
+Jacobian-vector product and $B^\top w$ from a vector-Jacobian product \emph{on the
+same} $w$. Pairing matters: the two norms are strongly correlated, so their ratio
+is far better conditioned than either term. Standard errors come from a block
+jackknife over probes.
+
+\paragraph{Validation, twice, before use.}
+On synthetic fields $g(x) = (S + cA)x$ with $S$ symmetric and $A$ antisymmetric,
+$\kappa$ is known in closed form; sweeping $c$ walks the estimator across
+$\kappa \in [0.025, 1]$ with worst absolute error $0.0036$, and it returns
+\emph{exactly} $1.0000$ at $c = 0$. Since the answer lands near $1/\sqrt 2$, we
+calibrate again there: strictly triangular $B_0$ plus a controlled diagonal block,
+where \eqref{eq:kappa-tr} gives the exact value, with worst error $0.0041$. That
+$0.0041$ is the resolution with which any excess over the floor can be claimed,
+and we quote it whenever we compare against the floor.
+
+\section{Three traps}\label{sec:traps}
+
+Each of the following returns a plausible number rather than an error, and each
+was hit before it was fixed.
+
+\paragraph{Second-order stop-gradient.} \texttt{jax.lax.stop\_gradient} has zero
+derivative at \emph{all} orders. Differentiating the released
+\texttt{backprop=False} path a second time therefore erases $B$ --- the very
+object under measurement --- and reports a perfect gradient field. Our first
+attempt returned $\beta = 0.0000$ from an autodiff path for exactly this reason.
+The cure here is structural: $B$ is obtained as a \emph{first} derivative of the
+target map, so no stop-gradient is ever on the path.
+
+\paragraph{Querying an untrained agent.} Disco103 was meta-learned against
+competent agents. Presented with a freshly initialised one --- near-uniform
+policy, near-uniform $600$-way predictions --- its outputs collapse towards a
+constant and every sensitivity reads as zero for reasons unrelated to
+conservativity. The agent must first be trained \emph{by Disco103 itself}.
+
+\paragraph{Silent out-of-bounds.} JAX drops out-of-bounds scatter indices
+silently. A control that perturbs index $t+3$ while reading index $t$ becomes a
+no-op at the end of a rollout, and the resulting $0/0$ surfaces as \texttt{nan}
+rather than as an error. Relatedly, an $\varepsilon$ placed outside rather than
+inside the square root in an unrolled Adam gives an infinite derivative at zero
+second moment --- which masked-out logits always have --- turning the outer
+gradient into \texttt{nan} while the forward pass stays finite.
+
+\section{Result}
+
+We train an agent with Disco103 on a given environment, freeze a rollout, and
+measure $\kappa(B)$ on the joint prediction vector of policy logits, $y$ logits,
+and $z$ logits at the action taken; the dimension is $86{,}616$. Two
+environments are used. The first is a hypergrid, a DAG in which several action
+sequences reach the same state. The second is Catch, which belongs to the family
+Disco103 was actually meta-trained against and therefore answers the obvious
+objection that the first is an out-of-distribution query. Training length is
+swept over a factor of sixteen.
+
+\begin{table}[t]
+\centering
+\begin{tabular}{llrrr}
+\toprule
+Environment & Training steps & $\kappa(B)$ & $\tr(B^2)/\lVert B\rVert_F^2$ & $\kappa - 1/\sqrt2$ \\
+\midrule
+hypergrid & 100  & $0.7084 \pm 0.0002$ & $+0.00358$ & $+0.0013$ \\
+hypergrid & 400  & $0.7086 \pm 0.0007$ & $+0.00435$ & $+0.0015$ \\
+hypergrid & 1600 & $0.7090 \pm 0.0009$ & $+0.00550$ & $+0.0019$ \\
+Catch     & 100  & $0.7086 \pm 0.0003$ & $+0.00414$ & $+0.0015$ \\
+Catch     & 400  & $0.7088 \pm 0.0004$ & $+0.00477$ & $+0.0017$ \\
+Catch     & 1600 & $0.7094 \pm 0.0008$ & $+0.00648$ & $+0.0023$ \\
+\midrule
+\multicolumn{2}{l}{causal floor $1/\sqrt2$} & $0.70711$ & $0$ & --- \\
+\multicolumn{2}{l}{estimator resolution in this band} & $0.0041$ & & \\
+\bottomrule
+\end{tabular}
+\caption{$\kappa$ of Disco103's bootstrap operator. Dimension $86{,}616$, $48$
+paired probes, errors by block jackknife. Every excess over the floor is smaller
+than the estimator's demonstrated resolution in the same band.}
+\label{tab:kappa}
+\end{table}
+
+Table~\ref{tab:kappa} gives the result. Two readings, both of which matter.
+
+\paragraph{$\kappa \neq 1$: the update is not a gradient field.} The estimator
+returns exactly $1.0000$ for a genuine gradient, and the frozen-target control on
+the same network --- the same loss with the target held constant, which is an
+honest scalar objective --- also returns $1.0000$. Against that, $0.7088$ is not
+a near miss. Disco103's update is not $-\nabla\Phi$ for any $\Phi$, so
+\emph{which objective does DiscoRL minimise} is malformed rather than open.
+
+\paragraph{$\kappa \approx 1/\sqrt2$: no more circulation than causality forces.}
+Every excess over the floor lies between $+0.0013$ and $+0.0023$, below the
+$0.0041$ resolution demonstrated in that band. The non-conservativity is
+therefore not something meta-learning discovered; it is the generic price of a
+causal bootstrap. The excess is nonzero and increases monotonically with training
+length in both environments, consistent with the diagonal block that the paired
+$(y_t, y_{t+1})$ input creates, but it remains within resolution throughout.
+
+\paragraph{What can be said about the conservative part.} By orthogonality of
+$\sym$ and $\asym$, the Hodge projection onto the conservative sector retains
+$\kappa^2 \approx 0.502$ of the operator's Frobenius mass. We state this at the
+level of the \emph{operator} only. Connecting an operator-mass split to sample
+efficiency or solution quality is work we have not done, and the number should
+not be read as ``half of DiscoRL is a gradient method''.
+
+\section{What do the discovered predictions represent?}
+
+DiscoRL's own analysis reports that the learned predictions track future policy
+entropy and upcoming large-reward events. On a hypergrid the natural candidate
+state functions are computable exactly by dynamic programming, so the claim can
+be tested rather than paraphrased. We use Disco103's \emph{own} scalar readout of
+its $600$-way prediction --- the \texttt{y\_net} and \texttt{z\_net} multilayer
+perceptrons whose weights ship with the released parameters --- so the probe has
+zero free parameters. The categorical $q$ head, a value head by construction,
+serves as positive control.
+
+\begin{table}[t]
+\centering
+\begin{tabular}{llrrl}
+\toprule
+Readout & Target & $R^2$ & Spearman & Role \\
+\midrule
+$q$ head    & $V_\pi$   & $0.559$ & $+0.844$ & positive control \\
+$\varphi(z)$ & $V_\pi$   & $0.478$ & $-0.722$ & \\
+$\varphi(y)$ & $V_\pi$   & $0.125$ & $-0.377$ & \\
+$\varphi(y)$ & $\log F$  & $0.018$ & $-0.080$ & flow hypothesis \\
+$\varphi(y)$ & $\mathcal H_{\text{future}}$ & $0.002$ & --- & entropy hypothesis \\
+\bottomrule
+\end{tabular}
+\caption{State-conditional means over $64/64$ visited states, $40$ rollouts,
+exact targets by dynamic programming. The control works; the $y$ channel tracks
+nothing.}
+\label{tab:probe}
+\end{table}
+
+Table~\ref{tab:probe} reports the outcome. The control passes cleanly, so the
+bucketing, the training and the dynamic programming all work; against that
+baseline the $y$ channel tracks neither a flow, nor a value, nor future policy
+entropy. A joint regression does not rescue it: adding $\varphi(y)$ to
+$\varphi(z)$ buys $0.010$ of $R^2$ on $\log F$ but $0.060$ on the pure value
+control, so it behaves as a generic weak regressor rather than as the
+complementary half of a free-energy decomposition.
+
+\paragraph{How strongly may these nulls be read?} A potential must be a state
+function, and the agent's torso is recurrent, so we decompose each readout's
+variance. $\varphi(y)$ is a \emph{pure} state function, $\eta^2 = 1.0000$ --- the
+bucketing was never washing it out --- but its dynamic range is $68\times$
+smaller than $\varphi(z)$'s. The honest scope is therefore: in this regime the
+$y$ channel carries a deterministic but vanishingly small state signal that
+matches no candidate potential. That is weaker than ``$y$ can never be a flow''.
+
+\paragraph{A sensitivity that is real.} A separate probe shows the $y$-target does
+respond to the log-probability of the action taken, at $139\times$ the
+random-initialisation null, and the response is local: moving the perturbation
+three steps later reduces it by $23\times$. The $y$ channel is not inert as a map;
+it is unidentified as a function.
+
+\section{Withdrawals}
+
+An earlier draft of this work reported two interpretations that we now retract.
+Both arose from the same failure: reading a number that has a simple structural
+explanation as evidence for a more elaborate one.
+
+First, we reported the ratio of the $y$-target's sensitivity to log-policy against
+its sensitivity to the successor prediction, $|\beta/\alpha| = 0.32$, as ``a third
+of the way to detailed balance''. That reading presumes $\varphi(y)$ is a
+log-flow quantity. The calibration in Table~\ref{tab:probe} refutes the premise,
+so the reading is withdrawn; the sensitivity measurement itself stands.
+
+Second, we read $\kappa^2 \approx 0.5$ as evidence that the update implements a
+saddle-point, primal--dual scheme, on the grounds that such schemes have an
+irreducibly antisymmetric coupling block. But Proposition~\ref{prop:floor} already
+accounts for the same number with no saddle structure whatsoever, and it was
+derived first. The simpler explanation suffices; the saddle reading is withdrawn.
+
+\section{Related work, and what is not ours}
+
+The gradient-field question for bootstrapped updates is old. Residual-gradient
+methods differentiate through the target and are genuine gradient methods, at the
+cost of a double-sampling bias in stochastic environments and a different, often
+worse, fixed point under function approximation \cite{baird1995residual}; the
+gradient-TD family restores a true objective by introducing an auxiliary variable
+\cite{sutton2009gtd}, and the convex-duality view organises this
+\cite{nachum2020fenchel}. What is new here is not the question but its
+application to a rule that was discovered rather than designed, together with an
+analytic reference scale that makes the answer readable.
+
+We also record what is \emph{not} ours. In the course of this work we derived a
+structural result about GFlowNet flow spaces --- that the set of $R$-flows is an
+affine set directed by the cycle space of the state graph, so the backward policy
+is a gauge freedom that cannot move the terminal distribution. It is published.
+Brunswic et al.\ \cite{brunswic2024nonacyclic} prove $\mathcal F_R = F + H^1(G)$
+and attribute a stronger form to Kalpazidou; that every backward policy induces
+the same terminal distribution is standard and stated in at least six papers,
+most crisply in trajectory balance \cite{malkin2022tb}, which already names
+cycles in the underlying undirected graph as the source of the multiplicity;
+and learning the backward policy for performance with correctness preserved by
+construction has been done with at least five distinct objectives. Our addition
+was the dimension $|E| - |V| + 1$ and its identification with the parameter count
+of the backward policy, which is the first Betti number and follows immediately.
+We claim none of it.
+
+We note also that the method we had been using to judge novelty --- counting
+arXiv abstract matches --- failed on exactly this case, because the pre-empting
+paper writes $H^1(G)$ in cohomological notation and never uses the phrase
+``cycle space''.
+
+\section{Limitations}
+
+The measurement is of one rule, Disco103, on two environments. Catch answers the
+distribution objection but neither environment is ProcGen or DMLab. $\kappa$ is
+computed on a frozen rollout at a single point in parameter space, and while it is
+stable across a sixteen-fold range of training length, it is a local quantity.
+The probe restricts to the prediction channels the agent loss touches and holds
+the Polyak-delayed target network fixed, which is faithful within one update but
+suppresses one dependency. Batch elements couple at $O(1/B)$ through the
+advantage and TD normalisers. Finally, the conservative-mass statement
+$\kappa^2 \approx 0.5$ is an operator-level fact with no demonstrated behavioural
+consequence.
+
+\section{Reproducibility}
+
+Every number in this paper is produced by a script, and the scripts are in the
+accompanying repository. \texttt{kappa.py} performs the estimator validation and
+the measurement; \texttt{calibrate.py} and \texttt{thermo.py} perform the
+prediction probes and the variance decomposition; \texttt{disco\_probe.py}
+performs the sensitivity measurement; \texttt{verify\_disco\_source.py} encodes
+the claims we make about the released implementation as executable assertions
+pinned to commit \texttt{9059a29f}, re-run weekly, so that a claim about someone
+else's code cannot rot silently. All exact quantities are computed by dynamic
+programming over the state graph rather than sampled.
+
+\begin{thebibliography}{9}
+\bibitem{oh2025disco} J.~Oh, G.~Farquhar, I.~Kemaev, D.~A.~Calian, M.~Hessel,
+L.~Zintgraf, S.~Singh, H.~van Hasselt, D.~Silver.
+\newblock Discovering state-of-the-art reinforcement learning algorithms.
+\newblock \emph{Nature}, 2025. \url{https://doi.org/10.1038/s41586-025-09761-x}
+
+\bibitem{baird1995residual} L.~Baird.
+\newblock Residual algorithms: reinforcement learning with function
+approximation.
+\newblock \emph{ICML}, 1995.
+
+\bibitem{sutton2009gtd} R.~S.~Sutton, H.~R.~Maei, D.~Precup, S.~Bhatnagar,
+D.~Silver, C.~Szepesv\'ari, E.~Wiewiora.
+\newblock Fast gradient-descent methods for temporal-difference learning with
+linear function approximation.
+\newblock \emph{ICML}, 2009.
+
+\bibitem{nachum2020fenchel} O.~Nachum, B.~Dai.
+\newblock Reinforcement learning via Fenchel--Rockafellar duality.
+\newblock arXiv:2001.01866, 2020.
+
+\bibitem{malkin2022tb} N.~Malkin, M.~Jain, E.~Bengio, C.~Sun, Y.~Bengio.
+\newblock Trajectory balance: improved credit assignment in GFlowNets.
+\newblock \emph{NeurIPS}, 2022. arXiv:2201.13259.
+
+\bibitem{brunswic2024nonacyclic} L.~Brunswic, Y.~Li, Y.~Xu, S.~Jui, L.~Ma.
+\newblock A theory of non-acyclic generative flow networks.
+\newblock \emph{AAAI}, 2024. arXiv:2312.15246.
+
+\bibitem{tiapkin2024} D.~Tiapkin, N.~Morozov, A.~Naumov, D.~Vetrov.
+\newblock Generative flow networks as entropy-regularized RL.
+\newblock \emph{AISTATS}, 2024. arXiv:2310.12934.
+\end{thebibliography}
+
+\end{document}

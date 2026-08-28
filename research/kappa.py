@@ -181,11 +181,24 @@ def causal_check(d: int, n_probes: int, key) -> list[dict]:
 # --------------------------------------------------------------------------
 
 
-def build_arm(rule: str, height: int, batch: int):
-    """Same network, same environment, different update rule."""
-    env = hypergrid_env.HypergridJittableEnvironment(
-        batch_size=batch, env_settings=hypergrid_env.get_config_hypergrid()
-    )
+def build_arm(rule: str, height: int, batch: int, env_name: str = "hypergrid"):
+    """Same network, different environment or update rule.
+
+    Catch matters because it is the kind of environment Disco103 was actually
+    meta-trained against, whereas the hypergrid is an off-distribution query. If
+    kappa is a property of the rule rather than of the probe's environment, the
+    two must agree.
+    """
+    if env_name == "catch":
+        from disco_rl.environments import jittable_envs
+
+        env = jittable_envs.CatchJittableEnvironment(
+            batch_size=batch, env_settings=jittable_envs.get_config_catch()
+        )
+    else:
+        env = hypergrid_env.HypergridJittableEnvironment(
+            batch_size=batch, env_settings=hypergrid_env.get_config_hypergrid()
+        )
     settings = (
         agent_lib.get_settings_disco()
         if rule == "disco"
@@ -286,6 +299,7 @@ def main() -> int:
     ap.add_argument("--train-steps", type=int, default=300)
     ap.add_argument("--probes", type=int, default=64)
     ap.add_argument("--synthetic-dim", type=int, default=200)
+    ap.add_argument("--env", type=str, default="hypergrid", choices=("hypergrid", "catch"))
     ap.add_argument("--json", type=str, default="")
     args = ap.parse_args()
 
@@ -316,10 +330,10 @@ def main() -> int:
     print(f"worst error near the causal floor: {worst_cal:.4f}")
 
     print("\n" + "=" * 78)
-    print("STEP 2  the bootstrap term of Disco103")
+    print(f"STEP 2  the bootstrap term of Disco103 on {args.env}, {args.train_steps} training steps")
     print("=" * 78)
     disco_params = disco_probe.unflatten_params(np.load(disco_probe.WEIGHTS))
-    env, ag = build_arm("disco", args.height, args.batch)
+    env, ag = build_arm("disco", args.height, args.batch, args.env)
     key, k = jax.random.split(key)
     rollout, learner_state, actor_state = disco_probe.train(
         env, ag, disco_params, args.rollout_len, args.train_steps, k
@@ -371,6 +385,8 @@ def main() -> int:
         "synthetic_worst_err": worst,
         "estimator_trusted": bool(trusted),
         "causal_calibration": cal,
+        "env": args.env,
+        "train_steps": args.train_steps,
         "arms": arms,
         "causal_floor": td,
         "bootstrap_present": bool(present),

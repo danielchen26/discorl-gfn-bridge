@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import GammaLab from "./components/GammaLab";
 import SourceMatrix from "./components/SourceMatrix";
-import { CorrectionNote, ExtDResults, ProbeResults } from "./components/Results";
+import { CalibrationResults, CorrectionNote, ExtDResults, ProbeResults } from "./components/Results";
 import WorkDial from "./components/WorkDial";
 import { Chip, M, Section, T } from "./components/ui";
 import {
@@ -17,10 +17,10 @@ import {
   REFS,
   RL_ROW,
 } from "./data/facts";
-import probeJson from "./data/disco_probe.json";
+import calibJson from "./data/calibrate.json";
 import type { Lang } from "./i18n";
 
-const PROBE = probeJson.arms[0];
+const CALIB_FLOW = calibJson.phi_y_logF;
 
 const REPO_URL = "https://github.com/danielchen26/discorl-gfn-bridge";
 
@@ -134,11 +134,11 @@ export default function App({ lang, setLang }: { lang: Lang; setLang: (l: Lang) 
               <span className="k">{zh ? "软 RL 的多路径指数 γ" : "the multi-path exponent γ of soft RL"}</span>
             </div>
             <div className="kpi conj">
-              <span className="v">{PROBE.beta_over_alpha.toFixed(2)}</span>
+              <span className="v">{CALIB_FLOW.r2.toFixed(3)}</span>
               <span className="k">
                 {zh
-                  ? "Disco103 的 |β/α| — DB 要求 1，纯 value 要求 0"
-                  : "Disco103's |β/α| — detailed balance wants 1, a pure value rule wants 0"}
+                  ? "φ(y) 对精确 log F 的 R² — 流假设在这里是零"
+                  : "R² of φ(y) against the exact log F — the flow hypothesis reads as nothing here"}
               </span>
             </div>
           </div>
@@ -491,10 +491,10 @@ export default function App({ lang, setLang }: { lang: Lang; setLang: (l: Lang) 
         <Section
           id="test"
           num="06"
-          title={{ zh: "把猜想真的测了", en: "The claim, actually tested" }}
+          title={{ zh: "把猜想真的测了 —— 它没成立", en: "The claim, actually tested — and it did not hold" }}
           kicker={{
-            zh: "Disco103 的权重是公开的,所以猜想不必停在猜想。结果是「部分」——两个方向的强命题都不成立。",
-            en: "The Disco103 weights are public, so the conjecture did not have to stay one. The answer came back partial: neither strong reading survives.",
+            zh: "Disco103 的权重是公开的,所以猜想不必停在猜想。跑完之后,连「部分成立」都得撤回。",
+            en: "The Disco103 weights are public, so the conjecture did not have to stay one. Once run, even the partial reading had to be withdrawn.",
           }}
         >
           <div className="body">
@@ -578,6 +578,27 @@ export default function App({ lang, setLang }: { lang: Lang; setLang: (l: Lang) 
             <h3>{zh ? "结果" : "What came back"}</h3>
           </div>
           <ProbeResults />
+          <div className="body">
+            <h3>{zh ? "但 β/α 到底测了什么?" : "But what was β/α measuring?"}</h3>
+            <p>
+              {zh ? (
+                <>
+                  上面那个比值只有在 <strong>φ(y) 确实追踪某个 log-flow 量</strong>时才有意义。这个前提我们
+                  从没验证过。在 hypergrid 上 <M tex={String.raw`\log F(s)`} /> 可以 DP 精确算出,agent 的
+                  on-policy 值 <M tex={String.raw`V_\pi(s)`} /> 也能算,所以直接回归就能判。
+                  阳性对照用 categorical <code>q</code> 头 —— 它按构造就是 value 头,必须追踪 value。
+                </>
+              ) : (
+                <>
+                  That ratio means something only if <strong>φ(y) really tracks a log-flow quantity</strong>, a
+                  premise never checked. On the hypergrid both <M tex={String.raw`\log F(s)`} /> and the agent's
+                  on-policy <M tex={String.raw`V_\pi(s)`} /> are computable exactly, so a regression settles it.
+                  The positive control is the categorical <code>q</code> head, a value head by construction.
+                </>
+              )}
+            </p>
+          </div>
+          <CalibrationResults />
         </Section>
         <Section
           id="next"

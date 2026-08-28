@@ -6,6 +6,9 @@ DiscoRL 是元学习出来的更新规则([Oh et al., *Nature* 2025](https://doi
 
 交互版:**https://danielchen26.github.io/discorl-gfn-bridge/**
 
+> **当前状态**:GFlowNet ↔ 变分推断/MaxEnt RL 的 mapping 是**精确的、已验证的**(第 1 节)。
+> DiscoRL ↔ $W(\tau)$ 的 mapping **没有建立**,而且最直接的证据(第 3.5 节)说它在 y 通道里不存在。
+
 这个 repo 里的每一个数字都由 `research/` 下的脚本产生,并且在 CI 里重跑。没有"据我所知"。
 
 ---
@@ -221,12 +224,39 @@ $$\alpha=\frac{\partial\varphi(\hat y_t)}{\partial\varphi(y_{t+1})},\qquad \beta
 
 **但「y 实现 detailed balance」也不成立。** $|\beta/\alpha| \approx 0.32$,离 DB 要求的 1 差三倍。跨探针配置这个数在 **0.26–0.41** 之间浮动,所以它是个区间,不是常数。
 
+### 3.5 校准:β/α 到底测了什么?
+
+上面那个比值只有在 **$\varphi(y)$ 确实追踪某个 log-flow 量**时才有意义。这个前提我们从没验证过。
+
+hypergrid 上 $\log F(s)$ 可以 DP 精确算,agent 的 on-policy 值 $V_\pi(s)$ 也能算,所以直接回归就能判。阳性对照用 categorical `q` 头 —— 它按构造就是 value 头,**必须**追踪 value,否则整套分桶/训练/DP 有问题,上面的一切都不可读。
+
+`.venv/bin/python research/calibrate.py`,64/64 状态全部访问到,40 条 rollout:
+
+| 读出 ~ 目标 | R² | Spearman | |
+|---|---|---|---|
+| **q head ~ V_π** | **0.559** | **+0.844** | 阳性对照 ✓ |
+| φ(z) ~ V_π | 0.478 | −0.722 | |
+| φ(y) ~ V_π | 0.125 | −0.377 | |
+| **φ(y) ~ log F** | **0.018** | **−0.080** | 流假设 |
+
+**对照通过,所以负面结论站得住。**
+
+- **φ(y) 不追踪 log F。** R² = 0.018,秩相关 −0.08 —— 是零。
+- φ(y) 也不追踪 value(R² = 0.125)。**y 通道什么都不追踪。**
+- 附带发现:**value 语义在 z 通道**,不在 y —— φ(z) 对 V_π 的秩相关是 −0.72。
+
+### 3.6 撤回
+
+**$|\beta/\alpha| = 0.32$ 不能读作「离 detailed balance 还差多少」。** 那个读法预设了 φ(y) 是个 log-flow 量,校准证伪了这个前提。
+
+保留的:β 本身仍然是关于更新映射 $f_\eta$ 的事实 —— 目标对所走动作的 log 概率有真实(139× null)且局部(23×)的响应,与 φ 的语义无关。撤回的:它的 detailed-balance 解释。
+
 ### 3.5 必须声明的边界
 
 - Disco103 是在 Atari / ProcGen / DMLab 上元学习出来的,这里被喂了一个 8×8 玩具格子 —— **分布外查询**。
 - φ 的单位任意,所以判据只能是比值,不能是 β 本身。
 - 批元素通过 advantage/TD 的 EMA 归一化有 **O(1/B)** 串扰,B=48 时约 2%。
-- 这不是对「DiscoRL 是不是 GFlowNet」的判决,而是对「它的 y 通道离平衡条件有多远」的一次定量读数。
+- 校准是在**一个**环境、400 步训练、分布外查询下做的。这不排除 φ(y) 在 Disco103 真正元训练过的域里追踪某个流量;它排除的是「在可解析算出 log F 的地方,y 追踪它」。
 
 ## 4. 第四层:四条拓展
 
@@ -285,7 +315,9 @@ GFN 的 $\log F$ 现在是**标量回归**,尺度跨几十个数量级,数值条
 | **我的综合** | DB 的四个充分统计量已在元网络输入总线上 | `disco.py:336–393` 逐项对照 |
 | **我的综合** | 原 γ 实验设计有缺陷,已由 β 探针替换 | 写 harness 时发现,见 3.1 |
 | **本机跑过** | Disco103 的 y 目标对所走动作的 log 概率有真实且**局部**的响应 | `disco_probe.py` — β 是 null 的 139×,局部性 23.3× |
-| **本机跑过** | 但它**没有**实现 detailed balance | \|β/α\| = 0.32(跨配置 0.26–0.41),DB 要求 ≈1 |
+| **本机跑过** | φ(y) 不追踪 log F,也不追踪 value | `calibrate.py` — R² = 0.018,秩相关 −0.08;对照 q 头对 V_π 是 R² = 0.56 |
+| **本机跑过** | value 语义在 z 通道,不在 y | φ(z) 对 V_π 秩相关 −0.72 |
+| **我的综合** | 因此 \|β/α\| 的 detailed-balance 读法已**撤回** | 比值预设 φ(y) 是 log-flow 量;校准证伪了该前提 |
 | **本机跑过** | 拓展 D 部分成立:收敛更快、梯度尾更紧,渐近值不更好 | `logf_head.py` — 18/20 检查点领先,梯度 p99 1.13 vs 1.56 |
 
 ---
@@ -310,6 +342,9 @@ python3 -m venv .venv && .venv/bin/pip install "jax[cpu]" dm-haiku rlax distrax 
 .venv/bin/pip install git+https://github.com/google-deepmind/disco_rl.git
 cd research && ../.venv/bin/python disco_probe.py --json disco_probe.json
 
+# ④b 校准：φ(y) 到底追踪 log F 还是 value？（这一条决定 ④ 可不可读）
+../.venv/bin/python calibrate.py --json calibrate.json
+
 # ⑤ 拓展 D：标量 vs categorical log F 头
 .venv/bin/python research/logf_head.py --json research/logf_head.json
 
@@ -324,6 +359,7 @@ npm install && npm run dev
 | `research/parity.ts` | 187 项比较,TS 引擎 vs Python oracle,容差 1e−12 | Node ≥ 22.6 |
 | `research/hypergrid_env.py` | hypergrid 作为 disco_rl jittable 环境 | JAX + disco_rl |
 | `research/disco_probe.py` | β / α / ρ 灵敏度 + 局部性安慰剂,零自由参数 | JAX + disco_rl |
+| `research/calibrate.py` | φ(y)/φ(z)/q 头 对 精确 log F、V_π、V* 的回归,带阳性对照 | JAX + disco_rl |
 | `research/logf_head.py` | 标量 vs categorical flow 头,5 种子,精确 KL | JAX |
 
 `.github/workflows/verify.yml` 每周一重跑全部三条 —— 因为第 2 节的断言是关于**别人的仓库**的,会悄悄腐烂。

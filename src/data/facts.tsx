@@ -13,11 +13,14 @@ import type { Prov } from "../components/ui";
 import type { L, LN } from "../i18n";
 
 import cumulants from "./cumulants.json";
+import calibJson from "./calibrate.json";
 import probeJson from "./disco_probe.json";
 
 const PROBE_RATIO = probeJson.ratio_to_null;
 const PROBE_LOCALITY = probeJson.arms[0].locality;
-const PROBE_BA = probeJson.arms[0].beta_over_alpha;
+const CALIB_FLOW_R2 = calibJson.phi_y_logF.r2;
+const CALIB_FLOW_SP = calibJson.phi_y_logF.spearman;
+const CALIB_Q_R2 = calibJson.control.q_value_r2;
 
 export const DISCO_REPO = "google-deepmind/disco_rl";
 export const DISCO_COMMIT = "9059a29f7121d60948f25ef165e08e050e9399c8";
@@ -306,12 +309,31 @@ export const LEDGER: Row[] = [
   {
     prov: "verified",
     claim: {
-      zh: "但它没有实现 detailed balance:|β/α| 远小于 1",
-      en: "But it does not implement detailed balance: |β/α| is far below 1",
+      zh: "φ(y) 不追踪精确 log F，也不追踪 value —— y 通道什么都不追踪",
+      en: "φ(y) tracks neither the exact log F nor a value function — the y channel tracks nothing",
     },
     how: {
-      zh: `|β/α| = ${PROBE_BA.toFixed(2)}（跨配置 0.26–0.41），DB 要求 ≈1`,
-      en: `|β/α| = ${PROBE_BA.toFixed(2)} (0.26–0.41 across configurations); detailed balance wants ≈1`,
+      zh: `research/calibrate.py — R² = ${CALIB_FLOW_R2.toFixed(3)}，秩相关 ${CALIB_FLOW_SP.toFixed(2)}；阳性对照 q 头对 V_π 是 R² = ${CALIB_Q_R2.toFixed(2)}`,
+      en: `research/calibrate.py — R² = ${CALIB_FLOW_R2.toFixed(3)}, rank ${CALIB_FLOW_SP.toFixed(2)}; the q-head control reaches R² = ${CALIB_Q_R2.toFixed(2)} against V_π`,
+    },
+  },
+  {
+    prov: "verified",
+    claim: {
+      zh: "value 语义在 z 通道，不在 y",
+      en: "The value semantics live in the z channel, not in y",
+    },
+    how: { zh: "φ(z) 对 V_π 的秩相关 −0.72", en: "φ(z) against V_π, rank correlation −0.72" },
+  },
+  {
+    prov: "mine",
+    claim: {
+      zh: "因此 |β/α| 的 detailed-balance 读法已撤回",
+      en: "The detailed-balance reading of |β/α| is therefore withdrawn",
+    },
+    how: {
+      zh: "比值预设 φ(y) 是 log-flow 量；校准证伪了该前提。β 本身仍成立。",
+      en: "The ratio presumed φ(y) is a log-flow quantity; calibration refuted that. β itself stands.",
     },
   },
   {

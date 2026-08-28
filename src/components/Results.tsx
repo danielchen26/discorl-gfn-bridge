@@ -1,9 +1,13 @@
 import probe from "../data/disco_probe.json";
 import extd from "../data/logf_head.json";
+import calib from "../data/calibrate.json";
 import { Chip, M } from "./ui";
 import { useLang } from "../i18n";
 
 const DISCO = probe.arms[0];
+
+const FIT = (readout: string, target: string) =>
+  calib.fits.find((f) => f.readout === readout && f.target === target)!;
 const NULLS = probe.arms.slice(1);
 const nullMean = (k: keyof typeof DISCO) =>
   NULLS.reduce((s, a) => s + (a[k] as number), 0) / NULLS.length;
@@ -317,5 +321,98 @@ export function CorrectionNote() {
         )}
       </div>
     </div>
+  );
+}
+
+/**
+ * The calibration that decides whether the beta ratio meant anything.
+ *
+ * beta/alpha is only a "fraction of detailed balance" if phi(y) tracks a flow.
+ * On this environment it does not track anything, while the positive control --
+ * the categorical q head, a value head by construction -- tracks the on-policy
+ * value cleanly. So the machinery works and the y channel genuinely carries
+ * neither quantity, which retires the ratio's interpretation.
+ */
+export function CalibrationResults() {
+  const lang = useLang();
+  const zh = lang === "zh";
+  const rows: [string, string, string][] = [
+    ["q head", "V_pi", zh ? "阳性对照" : "positive control"],
+    ["phi(z)", "V_pi", ""],
+    ["phi(y)", "V_pi", ""],
+    ["phi(y)", "log_F", zh ? "流假设" : "the flow hypothesis"],
+  ];
+  return (
+    <>
+      <div className="scroller">
+        <table className="tbl">
+          <thead>
+            <tr>
+              <th>{zh ? "读出 ~ 目标" : "readout ~ target"}</th>
+              <th className="num">R²</th>
+              <th className="num">Spearman</th>
+              <th>{zh ? "角色" : "role"}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map(([r, t, note]) => {
+              const f = FIT(r, t);
+              const strong = Math.abs(f.spearman) > 0.6;
+              return (
+                <tr key={`${r}~${t}`}>
+                  <td style={{ color: t === "log_F" && r === "phi(y)" ? "var(--rl)" : undefined }}>
+                    {r} ~ {t}
+                  </td>
+                  <td className={`num ${strong ? "ok" : ""}`}>{f.r2.toFixed(3)}</td>
+                  <td className={`num ${strong ? "ok" : ""}`}>{f.spearman.toFixed(3)}</td>
+                  <td style={{ color: "var(--text-3)", fontSize: 13 }}>{note}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <div className="callout">
+        <strong>{zh ? "撤回。" : "Withdrawn."}</strong>{" "}
+        {zh ? (
+          <>
+            阳性对照通过 —— categorical q 头按构造就是 value 头,它以 R² = {FIT("q head", "V_pi").r2.toFixed(2)}、
+            ρ = {FIT("q head", "V_pi").spearman.toFixed(2)} 追踪 on-policy value,所以分桶、训练和 DP 都正常。
+            在这个前提下,<strong>φ(y) 对 log F 的 R² 只有 {FIT("phi(y)", "log_F").r2.toFixed(3)},秩相关{" "}
+            {FIT("phi(y)", "log_F").spearman.toFixed(2)} —— 是零</strong>。
+            <br />
+            <br />
+            所以 |β/α| 不能读作「离 detailed balance 还差多少」:那个读法预设了 φ(y) 是个 log-flow 量,
+            而它不是。β 本身仍然是关于更新映射的事实(139× null、23× 局部性),但它的 DB 解释<strong>已撤回</strong>。
+            <br />
+            <br />
+            附带发现:value 语义在 <strong>z</strong> 通道里,不在 y —— φ(z) 与 V<sub>π</sub> 的秩相关是{" "}
+            {FIT("phi(z)", "V_pi").spearman.toFixed(2)}。
+          </>
+        ) : (
+          <>
+            The positive control passes: the categorical q head is a value head by construction and tracks the
+            on-policy value at R² = {FIT("q head", "V_pi").r2.toFixed(2)}, ρ ={" "}
+            {FIT("q head", "V_pi").spearman.toFixed(2)}, so the bucketing, the training and the DP all work.
+            Against that, <strong>φ(y) explains R² = {FIT("phi(y)", "log_F").r2.toFixed(3)} of log F with rank
+            correlation {FIT("phi(y)", "log_F").spearman.toFixed(2)} — nothing</strong>.
+            <br />
+            <br />
+            So |β/α| cannot be read as "how far from detailed balance": that reading presumed φ(y) is a
+            log-flow quantity, and it is not. β itself remains a fact about the update map (139× the null, 23×
+            locality), but its detailed-balance interpretation is <strong>withdrawn</strong>.
+            <br />
+            <br />
+            Incidental finding: the value semantics live in the <strong>z</strong> channel, not y — φ(z)
+            against V<sub>π</sub> has rank correlation {FIT("phi(z)", "V_pi").spearman.toFixed(2)}.
+          </>
+        )}
+      </div>
+      <p className="hint">
+        {zh
+          ? "一个环境、400 步训练、分布外查询。这不排除 φ(y) 在 Disco103 真正元训练过的域里追踪某个流量;它排除的是「在可解析算出 log F 的地方,y 追踪它」。"
+          : "One environment, 400 training steps, an off-distribution query. This does not rule out φ(y) tracking a flow in the domains Disco103 was actually meta-trained on. It rules out y tracking log F where log F can be computed exactly."}
+      </p>
+    </>
   );
 }

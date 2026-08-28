@@ -1,0 +1,18 @@
+{
+  "height": 8,
+  "n_vertices": 64,
+  "n_edges": 112,
+  "pb_dof": 49,
+  "cycle_rank_formula": 49,
+  "cycle_rank_from_incidence": 49,
+  "dimension_match": true,
+  "samples": 200,
+  "max_terminal_deviation": 1.6653345369377348e-16,
+  "terminal_invariant": true,
+  "cond_min": 27.539386165213006,
+  "cond_max": 32.36941105452787,
+  "cond_uniform": 27.593306322100297,
+  "logF_span_min": 4.721440031586845,
+  "logF_span_max": 7.416979621322186,
+  "logF_span_uniform": 5.521423358471456
+}

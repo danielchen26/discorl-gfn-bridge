@@ -268,6 +268,58 @@ hypergrid 上 $\log F(s)$ 可以 DP 精确算,agent 的 on-policy 值 $V_\pi(s)$
 - 批元素通过 advantage/TD 的 EMA 归一化有 **O(1/B)** 串扰,B=48 时约 2%。
 - 校准是在**一个**环境、400 步训练、分布外查询下做的。这不排除 φ(y) 在 Disco103 真正元训练过的域里追踪某个流量;它排除的是「在可解析算出 log F 的地方,y 追踪它」。
 
+## 3.7 障碍:它在极小化任何东西吗
+
+前面三次找势(流、value、熵)都失败了。这一节说明**为什么** —— 它们是在一个不保证有势的场里找势。而且这次的量**不依赖任何读出「有意义」**,正是杀死前三次的那个失败模式。
+
+### 结构
+
+GFlowNet 由一个损失定义,更新是 $-\nabla_\theta\mathcal L_{\rm TB}$,**真梯度**,势按构造存在。DiscoRL 产生目标再回归,是 **semi-gradient** —— 和 TD 同类,而 TD 不是任何函数的梯度(Baird 反例)。
+
+在预测空间(梯度场在预测空间 ⟹ 在参数空间也是,所以问的是同一件事,但**只需一阶导**、无嵌套微分):
+
+$$v(u)=\hat p(u)-p(u),\qquad J=\underbrace{B}_{\partial\hat p/\partial u}-\underbrace{D}_{\text{对称}},\qquad \kappa=\frac{\|\mathrm{sym}\,B\|_F}{\|B\|_F}$$
+
+一切非保守性都住在 $B$ —— 正是 `stop_gradient` 丢掉的那一项。Poincaré 引理:有势 ⟺ Jacobian 对称。
+
+### 刻度是解析的,不是拟合的
+
+对任意算子 $\|B\pm B^\top\|_F^2=2\|B\|_F^2\pm2\,\mathrm{tr}(B^2)$。「目标只读未来」的**因果**自举严格三角,$\mathrm{tr}(B^2)=0$,于是
+
+$$\kappa_{\text{任意因果自举}}=\frac{1}{\sqrt2}\quad\textbf{恰好}$$
+
+与维度无关、与细节无关。这是**结构地板**。
+
+### 三个陷阱
+
+1. **二阶 stop-gradient**:`jax.lax.stop_gradient` 在所有阶导数为零,沿仓库的 `backprop=False` 路径二次微分会把 $B$ 抹掉、报出假的 $\kappa=1$。这里 $B$ 是目标映射的**一阶**导数,路径上没有任何 sg。
+2. **无参照系**:由上面的解析 $1/\sqrt2$ 解决。
+3. **未验证的估计量**:Hutchinson 配对探针,先在已知 κ 的合成场上验,再在**答案落点的邻域**(因果地板 + 可控对角块)单独验。
+
+### 结果
+
+`.venv/bin/python research/kappa.py`,86,616 维,64 个探针:
+
+| | 值 |
+|---|---|
+| 估计量:合成场全域最大误差 | 0.0034 |
+| 估计量:因果地板邻域最大误差 | 0.0043 |
+| **Disco103 $\kappa_{\rm boot}$** | **0.7088 ± 0.0006** |
+| 因果地板 $1/\sqrt2$ | 0.70711 |
+| 偏离 | +0.0017(**小于估计量已证实的系统偏差**) |
+| $\mathrm{tr}(B^2)/\|B\|_F^2$ | +0.0047 |
+| **$\kappa^2$** | **0.5024** |
+
+**$\kappa\ne1$,所以 DiscoRL 的更新不是任何泛函的梯度。**「它极小化 $W$ 的哪个累积量」这个问题是**病态的** —— 没有那个泛函。这解释了前面三次失败:在一个证明没有势的算子里找势。
+
+**但它也没有比因果性所强制的更不保守。** 非保守性不是元学习发现的东西,是自举的通用代价。
+
+**部分 mapping 因此被量化了:**
+
+$$\boxed{\ \text{可映射份额}=\kappa^2=0.50\ }$$
+
+Hodge 投影 $\Pi_{\rm sym}$ 保住自举算子 Frobenius 质量的**恰好一半**;另一半结构上不可能写成梯度。
+
 ## 4. 第四层:四条拓展
 
 按「能不能写成论文」排序。
@@ -327,6 +379,9 @@ GFN 的 $\log F$ 现在是**标量回归**,尺度跨几十个数量级,数值条
 | **本机跑过** | Disco103 的 y 目标对所走动作的 log 概率有真实且**局部**的响应 | `disco_probe.py` — β 是 null 的 139×,局部性 23.3× |
 | **本机跑过** | φ(y) 不追踪 log F,也不追踪 value | `calibrate.py` — R² = 0.018,秩相关 −0.08;对照 q 头对 V_π 是 R² = 0.56 |
 | **本机跑过** | value 语义在 z 通道,不在 y | φ(z) 对 V_π 秩相关 −0.72 |
+| **本机跑过** | DiscoRL 的更新**不是**任何泛函的梯度:κ = 0.709 ≠ 1 | `kappa.py` — 估计量对真梯度精确返回 1.0000 |
+| **本机跑过** | 但也没有比因果性强制的更不保守:κ 落在 1/√2 地板上 | 偏离 +0.0017 < 估计量系统偏差 0.0043 |
+| **我的综合** | 部分 mapping = Hodge 投影,份额 κ² = **0.50** | 自举算子一半可梯度化,另一半结构上不能 |
 | **我的综合** | 因此 \|β/α\| 的 detailed-balance 读法已**撤回** | 比值预设 φ(y) 是 log-flow 量;校准证伪了该前提 |
 | **本机跑过** | 拓展 D 部分成立:收敛更快、梯度尾更紧,渐近值不更好 | `logf_head.py` — 18/20 检查点领先,梯度 p99 1.13 vs 1.56 |
 
@@ -355,6 +410,9 @@ cd research && ../.venv/bin/python disco_probe.py --json disco_probe.json
 # ④b 校准：φ(y) 到底追踪 log F 还是 value？（这一条决定 ④ 可不可读）
 ../.venv/bin/python calibrate.py --json calibrate.json
 
+# ⑥ κ：DiscoRL 的更新是不是某个泛函的梯度？
+../.venv/bin/python kappa.py --json kappa.json
+
 # ⑤ 拓展 D：标量 vs categorical log F 头
 .venv/bin/python research/logf_head.py --json research/logf_head.json
 
@@ -370,6 +428,7 @@ npm install && npm run dev
 | `research/hypergrid_env.py` | hypergrid 作为 disco_rl jittable 环境 | JAX + disco_rl |
 | `research/disco_probe.py` | β / α / ρ 灵敏度 + 局部性安慰剂,零自由参数 | JAX + disco_rl |
 | `research/calibrate.py` | φ(y)/φ(z)/q 头 对 精确 log F、V_π、V* 的回归,带阳性对照 | JAX + disco_rl |
+| `research/kappa.py` | 自举算子的对称份额 κ,带解析因果地板与双重估计量校准 | JAX + disco_rl |
 | `research/logf_head.py` | 标量 vs categorical flow 头,5 种子,精确 KL | JAX |
 
 `.github/workflows/verify.yml` 每周一重跑全部三条 —— 因为第 2 节的断言是关于**别人的仓库**的,会悄悄腐烂。

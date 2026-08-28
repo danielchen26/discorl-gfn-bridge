@@ -1,10 +1,12 @@
 import probe from "../data/disco_probe.json";
 import extd from "../data/logf_head.json";
 import calib from "../data/calibrate.json";
+import kap from "../data/kappa.json";
 import { Chip, M } from "./ui";
 import { useLang } from "../i18n";
 
 const DISCO = probe.arms[0];
+const KARM = kap.arms[0];
 
 const FIT = (readout: string, target: string) =>
   calib.fits.find((f) => f.readout === readout && f.target === target)!;
@@ -413,6 +415,117 @@ export function CalibrationResults() {
           ? "一个环境、400 步训练、分布外查询。这不排除 φ(y) 在 Disco103 真正元训练过的域里追踪某个流量;它排除的是「在可解析算出 log F 的地方,y 追踪它」。"
           : "One environment, 400 training steps, an off-distribution query. This does not rule out φ(y) tracking a flow in the domains Disco103 was actually meta-trained on. It rules out y tracking log F where log F can be computed exactly."}
       </p>
+    </>
+  );
+}
+
+
+/**
+ * The structural answer, and the end of the mapping question.
+ *
+ * kappa = ||sym B|| / ||B|| for the bootstrap operator B. A true gradient gives
+ * 1; any causal bootstrap gives exactly 1/sqrt(2), because a target that reads
+ * only the future is strictly triangular, so tr(B^2) = 0 and the symmetric and
+ * antisymmetric parts have equal norm. Disco103 sits on that floor.
+ */
+export function KappaResults() {
+  const lang = useLang();
+  const zh = lang === "zh";
+  const floor = kap.causal_floor;
+  return (
+    <>
+      <div className="readouts" style={{ marginBottom: 22 }}>
+        <div className="ro">
+          <span className="k">κ(bootstrap)</span>
+          <span className="v" style={{ color: "var(--rl)" }}>{KARM.kappa_bootstrap.toFixed(4)}</span>
+          <span className="n">± {KARM.se.toFixed(4)} · dim {KARM.dim.toLocaleString("en-US")}</span>
+        </div>
+        <div className="ro">
+          <span className="k">{zh ? "因果地板 1/√2" : "causal floor 1/√2"}</span>
+          <span className="v" style={{ color: "var(--gfn)" }}>{floor.toFixed(4)}</span>
+          <span className="n">
+            {zh ? `偏离 ${(KARM.kappa_bootstrap - floor >= 0 ? "+" : "")}${(KARM.kappa_bootstrap - floor).toFixed(4)}` : `off by ${(KARM.kappa_bootstrap - floor).toFixed(4)}`}
+          </span>
+        </div>
+        <div className="ro locked">
+          <span className="k">{zh ? "可梯度化份额 κ²" : "gradient share κ²"}</span>
+          <span className="v">{(KARM.kappa_bootstrap ** 2).toFixed(3)}</span>
+          <span className="n">{zh ? "恰好一半" : "exactly one half"}</span>
+        </div>
+      </div>
+
+      <div className="scroller">
+        <table className="tbl">
+          <thead>
+            <tr>
+              <th>{zh ? "估计量校准" : "estimator calibration"}</th>
+              <th className="num">{zh ? "解析值" : "exact"}</th>
+              <th className="num">{zh ? "测得" : "measured"}</th>
+              <th className="num">|err|</th>
+            </tr>
+          </thead>
+          <tbody>
+            {kap.synthetic.map((r) => (
+              <tr key={`s${r.c}`}>
+                <td>{zh ? "合成场 c = " : "synthetic c = "}{r.c}</td>
+                <td className="num">{r.exact.toFixed(4)}</td>
+                <td className="num">{r.est.toFixed(4)}</td>
+                <td className="num">{r.err.toFixed(4)}</td>
+              </tr>
+            ))}
+            {kap.causal_calibration.map((r) => (
+              <tr key={`c${r.diag_scale}`}>
+                <td style={{ color: "var(--gfn)" }}>
+                  {zh ? "因果自举 + 对角 " : "causal bootstrap + diag "}
+                  {r.diag_scale}
+                </td>
+                <td className="num">{r.exact.toFixed(4)}</td>
+                <td className="num">{r.est.toFixed(4)}</td>
+                <td className="num">{r.err.toFixed(4)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="callout ok">
+        <strong>{zh ? "结论。" : "The answer."}</strong>{" "}
+        {zh ? (
+          <>
+            <strong>κ = {KARM.kappa_bootstrap.toFixed(4)} ≠ 1,所以 DiscoRL 的更新不是任何泛函的梯度。</strong>{" "}
+            「它极小化 W 的哪个累积量」这个问题是<strong>病态的</strong> —— 没有那个泛函。
+            <br />
+            <br />
+            但它也<strong>没有</strong>比因果性所强制的更不保守。任何「目标只读未来」的自举算子严格三角,
+            tr(B²) = 0,于是 κ = 1/√2 恰好。测得偏离 +{(KARM.kappa_bootstrap - floor).toFixed(4)},
+            <strong>小于估计量在该邻域已证实的系统偏差(0.0043)</strong>。所以非保守性不是元学习发现的东西,
+            是自举的通用代价。
+            <br />
+            <br />
+            <strong>部分 mapping 因此被量化了:Hodge 投影 Π_sym 保住自举算子 Frobenius 质量的 κ² ={" "}
+            {(KARM.kappa_bootstrap ** 2).toFixed(3)} —— 恰好一半。</strong>
+          </>
+        ) : (
+          <>
+            <strong>κ = {KARM.kappa_bootstrap.toFixed(4)} ≠ 1, so DiscoRL's update is not the gradient of
+            any functional.</strong> "Which cumulant of W does it minimise" is <strong>malformed</strong> —
+            there is no such functional.
+            <br />
+            <br />
+            But it is <strong>no less</strong> conservative than causality forces. Any bootstrap whose target
+            reads only the future is strictly triangular, so tr(B²) = 0 and κ = 1/√2 exactly. The measured
+            excess of +{(KARM.kappa_bootstrap - floor).toFixed(4)} is{" "}
+            <strong>smaller than the estimator's demonstrated bias in that band (0.0043)</strong>. The
+            non-conservativity is not something meta-learning discovered; it is the generic price of
+            bootstrapping.
+            <br />
+            <br />
+            <strong>So the partial mapping is quantified: the Hodge projection Π_sym retains κ² ={" "}
+            {(KARM.kappa_bootstrap ** 2).toFixed(3)} of the bootstrap operator's Frobenius mass — exactly
+            one half.</strong>
+          </>
+        )}
+      </div>
     </>
   );
 }

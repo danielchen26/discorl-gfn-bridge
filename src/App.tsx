@@ -2,7 +2,13 @@ import { useEffect, useState } from "react";
 
 import GammaLab from "./components/GammaLab";
 import SourceMatrix from "./components/SourceMatrix";
-import { CalibrationResults, CorrectionNote, ExtDResults, ProbeResults } from "./components/Results";
+import {
+  CalibrationResults,
+  CorrectionNote,
+  ExtDResults,
+  KappaResults,
+  ProbeResults,
+} from "./components/Results";
 import WorkDial from "./components/WorkDial";
 import { Chip, M, Section, T } from "./components/ui";
 import {
@@ -636,8 +642,78 @@ export default function App({ lang, setLang }: { lang: Lang; setLang: (l: Lang) 
           <CalibrationResults />
         </Section>
         <Section
-          id="next"
+          id="kappa"
           num="07"
+          title={{ zh: "障碍:它在极小化任何东西吗", en: "The obstruction: is it minimising anything?" }}
+          kicker={{
+            zh: "前面三次找势都失败了。这一节说明为什么——在一个不保证有势的场里找势。而且这次的量不依赖任何读出「有意义」。",
+            en: "Three hunts for a potential failed. This is why: they were hunts inside a field that need not have one. And this measurement depends on no readout meaning anything.",
+          }}
+        >
+          <div className="body">
+            <p>
+              {zh ? (
+                <>
+                  GFlowNet 由一个损失定义,更新是 <M tex={String.raw`-\nabla_\theta\mathcal L_{\rm TB}`} />,
+                  <strong>真梯度</strong>,势按构造存在。DiscoRL 产生目标再回归,是 <strong>semi-gradient</strong> ——
+                  和 TD 同类,而 TD 不是任何函数的梯度。
+                </>
+              ) : (
+                <>
+                  A GFlowNet is defined by a loss, so its update is{" "}
+                  <M tex={String.raw`-\nabla_\theta\mathcal L_{\rm TB}`} /> — a <strong>true gradient</strong>,
+                  and a potential exists by construction. DiscoRL produces a target and regresses onto it: a{" "}
+                  <strong>semi-gradient</strong>, the same structure that makes TD the gradient of nothing.
+                </>
+              )}
+            </p>
+            <M
+              block
+              tex={String.raw`v(u)=\hat p(u)-p(u),\qquad J=\underbrace{B}_{\partial\hat p/\partial u}-\underbrace{D}_{\text{对称}},\qquad \kappa=\frac{\lVert\mathrm{sym}\,B\rVert_F}{\lVert B\rVert_F}`}
+            />
+            <p>
+              {zh ? (
+                <>
+                  一切非保守性都住在 <strong>B</strong> —— 正是 <code>stop_gradient</code> 丢掉的那一项。
+                  Poincaré 引理:有势 ⟺ Jacobian 对称。所以问题只剩一个标量。
+                </>
+              ) : (
+                <>
+                  All non-conservativity lives in <strong>B</strong> — precisely the term{" "}
+                  <code>stop_gradient</code> discards. By the Poincaré lemma a field is a gradient iff its
+                  Jacobian is symmetric, so the question reduces to one scalar.
+                </>
+              )}
+            </p>
+
+            <h3>{zh ? "刻度是解析的" : "The scale is analytic"}</h3>
+            <p>
+              {zh ? (
+                <>
+                  对任意算子 <M tex={String.raw`\lVert B\pm B^\top\rVert^2=2\lVert B\rVert^2\pm2\,\mathrm{tr}(B^2)`} />。
+                  「目标只读未来」的<strong>因果</strong>自举严格三角,<M tex={String.raw`\mathrm{tr}(B^2)=0`} />,
+                  于是 <M tex={String.raw`\kappa=1/\sqrt2`} /> <strong>恰好</strong>,与维度、与细节无关。
+                  这不是拟合出来的参照,是结构地板。
+                </>
+              ) : (
+                <>
+                  For any operator{" "}
+                  <M tex={String.raw`\lVert B\pm B^\top\rVert^2=2\lVert B\rVert^2\pm2\,\mathrm{tr}(B^2)`} />. A{" "}
+                  <strong>causal</strong> bootstrap, whose target reads only the future, is strictly triangular,
+                  so <M tex={String.raw`\mathrm{tr}(B^2)=0`} /> and <M tex={String.raw`\kappa=1/\sqrt2`} />{" "}
+                  <strong>exactly</strong>, independent of dimension and of every other detail. Not a fitted
+                  reference — a structural floor.
+                </>
+              )}
+            </p>
+            <h3>{zh ? "结果" : "Result"}</h3>
+          </div>
+          <KappaResults />
+        </Section>
+
+        <Section
+          id="next"
+          num="08"
           title={{ zh: "四条拓展", en: "Four extensions" }}
           kicker={{
             zh: "按「能不能写成论文」排序。D 最便宜,今晚就能试。",
@@ -682,7 +758,7 @@ export default function App({ lang, setLang }: { lang: Lang; setLang: (l: Lang) 
         {/* ------------------------------------------------------------- 08 */}
         <Section
           id="ledger"
-          num="08"
+          num="09"
           title={{ zh: "证据分层", en: "Evidence ledger" }}
           kicker={{
             zh: "把已发表结果、源码事实、我的综合和纯猜想分开摆。混在一起才是问题。",
@@ -718,7 +794,7 @@ export default function App({ lang, setLang }: { lang: Lang; setLang: (l: Lang) 
         {/* ------------------------------------------------------------- 09 */}
         <Section
           id="repro"
-          num="09"
+          num="10"
           title={{ zh: "复现", en: "Reproduce" }}
           kicker={{
             zh: "三条命令。第三条保证浏览器里的引擎和 Python oracle 逐位一致。",

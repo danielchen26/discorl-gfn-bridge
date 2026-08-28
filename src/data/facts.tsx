@@ -39,9 +39,10 @@ export const NAV: { id: string; num: string; label: L }[] = [
   { id: "where", num: "04", label: { zh: "DiscoRL 的落点", en: "Where DiscoRL lands" } },
   { id: "gamma", num: "05", label: { zh: "动手:γ", en: "Rig: γ" } },
   { id: "test", num: "06", label: { zh: "测了:β 探针", en: "Tested: the β probe" } },
-  { id: "next", num: "07", label: { zh: "四条拓展 + D 的结果", en: "Extensions, and D" } },
-  { id: "ledger", num: "08", label: { zh: "证据分层", en: "Evidence ledger" } },
-  { id: "repro", num: "09", label: { zh: "复现", en: "Reproduce" } },
+  { id: "kappa", num: "07", label: { zh: "障碍:κ", en: "The obstruction: κ" } },
+  { id: "next", num: "08", label: { zh: "四条拓展 + D 的结果", en: "Extensions, and D" } },
+  { id: "ledger", num: "09", label: { zh: "证据分层", en: "Evidence ledger" } },
+  { id: "repro", num: "10", label: { zh: "复现", en: "Reproduce" } },
 ];
 
 /* ------------------------------------------------------------- references */
@@ -353,6 +354,39 @@ export const LEDGER: Row[] = [
       en: "The value semantics live in the z channel, not in y",
     },
     how: { zh: "φ(z) 对 V_π 的秩相关 −0.72", en: "φ(z) against V_π, rank correlation −0.72" },
+  },
+  {
+    prov: "verified",
+    claim: {
+      zh: "DiscoRL 的更新不是任何泛函的梯度:κ = 0.709 ≠ 1",
+      en: "DiscoRL's update is not the gradient of any functional: κ = 0.709 ≠ 1",
+    },
+    how: {
+      zh: "research/kappa.py — 估计量对真梯度精确返回 1.0000,合成场全域误差 ≤ 0.0034",
+      en: "research/kappa.py — the estimator returns exactly 1.0000 for true gradients; worst synthetic error 0.0034",
+    },
+  },
+  {
+    prov: "verified",
+    claim: {
+      zh: "但也没有比因果性强制的更不保守:κ 落在 1/√2 的结构地板上",
+      en: "Nor is it less conservative than causality forces: κ sits on the 1/√2 structural floor",
+    },
+    how: {
+      zh: "偏离 +0.0017,小于估计量在该邻域已证实的系统偏差 0.0043",
+      en: "Off by +0.0017, smaller than the estimator's demonstrated 0.0043 bias in that band",
+    },
+  },
+  {
+    prov: "mine",
+    claim: {
+      zh: "部分 mapping = Hodge 投影,份额 κ² = 0.50 —— 恰好一半",
+      en: "The partial mapping is the Hodge projection, and its share is κ² = 0.50 — exactly one half",
+    },
+    how: {
+      zh: "自举算子 Frobenius 质量的一半可写成梯度,另一半结构上不能",
+      en: "Half the bootstrap operator's Frobenius mass is expressible as a gradient; the other half structurally is not",
+    },
   },
   {
     prov: "mine",

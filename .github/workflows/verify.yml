@@ -1,0 +1,28 @@
+name: verify
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # The source claims are about someone else's repository, so re-check them.
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+jobs:
+  claims:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Work-cumulant identities
+        run: python3 research/cumulants.py --json /tmp/cumulants.json
+      - name: DiscoRL source claims still hold
+        run: python3 research/verify_disco_source.py
+      - name: TypeScript engine matches the Python oracle
+        run: node research/parity.ts

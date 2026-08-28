@@ -1,0 +1,65 @@
+{
+  "repo": "google-deepmind/disco_rl",
+  "commit": "9059a29f7121d60948f25ef165e08e050e9399c8",
+  "checks": [
+    {
+      "id": "S1",
+      "claim": "The per-trajectory recurrence is unrolled backwards along the trajectory, and the source comment states the purpose is bootstrapping.",
+      "ok": true,
+      "file": "disco_rl/networks/meta_nets.py",
+      "lines": [
+        109,
+        116
+      ],
+      "evidence": "# Unroll the per-trajectory RNN core in reverse direction for bootstrapping."
+    },
+    {
+      "id": "S2",
+      "claim": "pi, y and z are all trained with categorical KL divergence: the predictions are distributions over bins, not scalars.",
+      "ok": true,
+      "file": "disco_rl/update_rules/disco.py",
+      "lines": [
+        245,
+        246,
+        247,
+        253
+      ],
+      "evidence": "pi_loss_per_step / y_loss_per_step / z_loss_per_step / aux_policy_loss_per_step"
+    },
+    {
+      "id": "S3",
+      "claim": "The meta-network receives (y_t, y_t+1) pairs and both the policy-weighted average and the max over actions of z at t and t+1 -- the sufficient statistics of a local balance condition.",
+      "ok": true,
+      "file": "disco_rl/update_rules/disco.py",
+      "lines": [
+        364,
+        376,
+        380,
+        388,
+        392
+      ],
+      "evidence": "td_pair@y=[364] pi_weighted_avg=[376, 388] max_a=[380, 392]"
+    },
+    {
+      "id": "S4",
+      "claim": "No backward policy and no parent-set information is ever fed to the meta-network; the only non-forward signal is the reverse recurrence over the realised trajectory suffix.",
+      "ok": true,
+      "file": "disco_rl/update_rules/disco.py",
+      "lines": [],
+      "evidence": "no matches"
+    },
+    {
+      "id": "S5",
+      "claim": "Two recurrences exist -- backward within a trajectory and forward across the agent's lifetime -- and they are combined multiplicatively.",
+      "ok": true,
+      "file": "disco_rl/networks/meta_nets.py",
+      "lines": [
+        120,
+        161,
+        340
+      ],
+      "evidence": "multiplicative_interaction@[120, 340] lifetime_doc@[161]"
+    }
+  ],
+  "ok": true
+}

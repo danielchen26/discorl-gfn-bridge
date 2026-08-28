@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/i18n.tsx","./src/main.tsx","./src/components/gammalab.tsx","./src/components/sourcematrix.tsx","./src/components/workdial.tsx","./src/components/ui.tsx","./src/data/facts.tsx","./src/lib/hypergrid.ts"],"version":"5.9.3"}

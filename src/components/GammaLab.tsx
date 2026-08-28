@@ -128,7 +128,7 @@ export default function GammaLab() {
         />
         <Readout
           k={{ zh: "最大路径数 n(x)", en: "largest n(x)" }}
-          v={Math.round(Math.exp(maxLogN)).toLocaleString()}
+          v={Math.round(Math.exp(maxLogN)).toLocaleString("en-US")}
           note={{ zh: "对角终点的单调格路数", en: "monotone lattice paths to the far corner" }}
         />
         <Readout

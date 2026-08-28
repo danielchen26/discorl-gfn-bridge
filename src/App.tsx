@@ -396,7 +396,7 @@ export default function App({ lang, setLang }: { lang: Lang; setLang: (l: Lang) 
           title={{ zh: "动手:三条线一起归零", en: "Rig: three curves collapsing together" }}
           kicker={{
             zh: "8×8 hypergrid,12,869 条轨迹,全枚举精确解。拖动滑块。",
-            en: `An 8×8 hypergrid, ${CUMULANTS.n_trajectories.toLocaleString()} trajectories, solved exactly. Drag the slider.`,
+            en: `An 8×8 hypergrid, ${CUMULANTS.n_trajectories.toLocaleString("en-US")} trajectories, solved exactly. Drag the slider.`,
           }}
         >
           <WorkDial />
@@ -654,7 +654,7 @@ node research/parity.ts`}</code>
             <p>
               {zh ? (
                 <>
-                  <code>cumulants.py</code> 在 8×8 hypergrid 上枚举 {CUMULANTS.n_trajectories.toLocaleString()}{" "}
+                  <code>cumulants.py</code> 在 8×8 hypergrid 上枚举 {CUMULANTS.n_trajectories.toLocaleString("en-US")}{" "}
                   条轨迹,用动态规划精确算出 W 的前两阶矩与指数平均。
                   <code>verify_disco_source.py</code> 把关于别人代码的断言写成可执行检查,钉在 commit{" "}
                   <code>{DISCO_COMMIT.slice(0, 12)}</code>,CI 每周重跑。
@@ -662,7 +662,7 @@ node research/parity.ts`}</code>
                 </>
               ) : (
                 <>
-                  <code>cumulants.py</code> enumerates {CUMULANTS.n_trajectories.toLocaleString()} trajectories
+                  <code>cumulants.py</code> enumerates {CUMULANTS.n_trajectories.toLocaleString("en-US")} trajectories
                   on an 8×8 hypergrid and computes the first two moments of W, plus its exponential average,
                   exactly by dynamic programming. <code>verify_disco_source.py</code> turns claims about someone
                   else's code into executable checks pinned to commit{" "}

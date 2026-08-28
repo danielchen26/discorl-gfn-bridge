@@ -64,6 +64,16 @@ $$\langle W_{\rm diss}\rangle=\mathbb E[W]+\log Z=D_{\rm KL}\big(P_F\,\|\,P_B\bi
 
 这正是 Kawai–Parrondo–Van den Broeck 的「耗散 = 相对熵」([PRL 98, 080602, 2007](https://doi.org/10.1103/PhysRevLett.98.080602))。变分推断做的 $\max$ ELBO,就是 $\min\mathbb E[W]$ —— **一阶累积量**。
 
+> **别把它读成平衡态。** GFlowNet 是**非平衡稳态**:flow matching 就是 Kirchhoff 电流律,有源有汇的 DAG 上每条边净电流恒非零,而平衡态要求处处净流为零。GFN 的 "detailed balance" 说的不是净流为零,而是 $p_B$ 恰好是 $p_F$ 关于测度 $F$ 的**对偶过程**。
+>
+> 所以 $W$ 是 **excess(Hatano–Sasa)熵产**,不是平衡功;$\mathrm{Var}[W]=0$ 是**零超额耗散**而非零耗散 —— housekeeping 电流($Z$ 从源流到汇)按构造恒非零,根本不进入平衡残差。
+>
+> 这也解释了「GFN 结果依赖 $p_B$ 的选取」(Mohammadpour et al.):excess 与 housekeeping 的劈分本来就只相对于一个对偶动力学的选择才有定义 —— 在 NESS 热力学里这是已知歧义(Hatano–Sasa vs Maes–Netočný)。
+>
+> 桥在文献里是通过 **Doob $h$-变换 / KL 控制**搭的,不是通过 NESS 热力学的语言:
+> $$\log F=\log h=\log z_{\text{desirability}}=-V_{\rm KL}=V_{\rm soft}\big|_{\beta=1}$$
+> 关键在**线性** —— desirability 满足线性后向递归,而 Bellman 是非线性的(max / logsumexp)。这才是 GFN 能用回归训练、不需要 max 算子的结构性原因。见 Chertkov–Behjoo–Ahn, [arXiv:2503.14549](https://arxiv.org/abs/2503.14549)。
+
 ### ③ Trajectory Balance = 二阶累积量
 
 TB 损失展开后字面上就是
@@ -393,6 +403,14 @@ src/components/      WorkDial（签名交互件）· GammaLab · SourceMatrix
    **PRL 98, 080602** (2007). [doi:10.1103/PhysRevLett.98.080602](https://doi.org/10.1103/PhysRevLett.98.080602)
 7. Jarzynski. *Nonequilibrium equality for free energy differences.*
    **PRL 78, 2690** (1997). [doi:10.1103/PhysRevLett.78.2690](https://doi.org/10.1103/PhysRevLett.78.2690)
+8. Chertkov, Behjoo, Ahn. *Sampling Decisions: Exact Path-Space Control for Physics-Informed
+   Generative Sampling.* (2025). [arXiv:2503.14549](https://arxiv.org/abs/2503.14549)
+   —— Doob $h$-变换 / KL-最优控制 / 单边 Schrödinger 输运 / GFlowNet flow 函数,是同一个对象。
+9. Albergo, Vanden-Eijnden. *NETS: A Non-Equilibrium Transport Sampler.* (2024).
+   [arXiv:2410.02711](https://arxiv.org/abs/2410.02711) —— 显式 Jarzynski 的非平衡输运采样器。
+10. Sendera, Kim, Mittal, Lemos, Scimeca, Rector-Brooks, Adam, Bengio, Malkin.
+   *Improved off-policy training of diffusion samplers.* (2024).
+   [arXiv:2402.05098](https://arxiv.org/abs/2402.05098)
 
 ---
 

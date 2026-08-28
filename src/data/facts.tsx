@@ -95,6 +95,24 @@ export const REFS: Ref[] = [
     url: "https://arxiv.org/abs/2210.00580",
   },
   {
+    id: "chertkov2025",
+    cite: "Chertkov, Behjoo, Ahn — arXiv:2503.14549 (2025)",
+    what: {
+      zh: "同一个对象等价于 Doob h-变换、KL-最优控制器、单边 Schrödinger 输运,以及 GFlowNet 式生成的理想 flow 函数。desirability 的后向递归是线性的 —— 这是 GFN 能用回归训练而不需要 max 算子的结构性原因。",
+      en: "One object with several faces: a Doob h-transform, a KL-optimal controller, a one-sided Schrödinger transport, and the ideal flow function for GFlowNet-type generation. The desirability recursion is linear — the structural reason GFNs train by regression rather than by a max operator.",
+    },
+    url: "https://arxiv.org/abs/2503.14549",
+  },
+  {
+    id: "albergo2024",
+    cite: "Albergo, Vanden-Eijnden — arXiv:2410.02711 (2024)",
+    what: {
+      zh: "NETS:显式基于 Jarzynski 等式的非平衡输运采样器,退火重要性采样加一个学出来的 drift。非平衡采样这条线是活的。",
+      en: "NETS: a non-equilibrium transport sampler built explicitly on Jarzynski's equality — annealed importance sampling plus a learned drift. The non-equilibrium sampling line is very much alive.",
+    },
+    url: "https://arxiv.org/abs/2410.02711",
+  },
+  {
     id: "kawai2007",
     cite: "Kawai, Parrondo, Van den Broeck — Phys. Rev. Lett. 98, 080602 (2007)",
     what: {
@@ -234,6 +252,17 @@ export const LEDGER: Row[] = [
     prov: "published",
     claim: { zh: "平均耗散功 = 前向/反向路径测度的相对熵", en: "Mean dissipated work = relative entropy of the path measures" },
     how: { zh: "Kawai–Parrondo–Van den Broeck 2007", en: "Kawai–Parrondo–Van den Broeck 2007" },
+  },
+  {
+    prov: "mine",
+    claim: {
+      zh: "GFlowNet 是非平衡稳态,不是平衡态:flow matching 就是 Kirchhoff 电流律",
+      en: "A GFlowNet is a non-equilibrium steady state, not an equilibrium: flow matching is Kirchhoff's current law",
+    },
+    how: {
+      zh: "有源有汇的 DAG 上每条边净电流非零;W 因此是 excess（Hatano–Sasa）熵产,不是平衡功",
+      en: "Every edge of a DAG with a source and sinks carries net current; W is therefore the excess (Hatano–Sasa) entropy production, not equilibrium work",
+    },
   },
   {
     prov: "verified",

@@ -292,6 +292,41 @@ export default function App({ lang, setLang }: { lang: Lang; setLang: (l: Lang) 
                   ? "这正是 Kawai–Parrondo–Van den Broeck 的「耗散 = 相对熵」。变分推断做的 max ELBO,就是 min ⟨W⟩ —— 一阶累积量。"
                   : "This is Kawai–Parrondo–Van den Broeck's dissipation-equals-relative-entropy. Maximising the ELBO is minimising ⟨W⟩ — the first cumulant."}
               </p>
+              <div className="callout" style={{ margin: "16px 0 0" }}>
+                <strong>{zh ? "别把它读成平衡态。" : "Do not read this as equilibrium."}</strong>{" "}
+                {zh ? (
+                  <>
+                    GFlowNet 是<strong>非平衡稳态</strong>:flow matching 就是 Kirchhoff 电流律,有源有汇的
+                    DAG 上每条边的净电流恒非零,平衡态要求处处净流为零。GFN 的「detailed balance」说的不是净流为零,
+                    而是 p_B 恰好是 p_F 关于测度 F 的<strong>对偶过程</strong>。
+                    <br />
+                    <br />
+                    所以 W 是 <strong>excess(Hatano–Sasa)熵产</strong>,不是平衡功;
+                    <M tex={String.raw`\mathrm{Var}[W]=0`} /> 是<strong>零超额耗散</strong>,而不是零耗散 ——
+                    housekeeping 电流(Z 从源流到汇)按构造恒非零,根本不进入平衡残差。
+                    <br />
+                    <br />
+                    这顺带解释了「GFN 结果依赖 p_B 的选取」:excess 与 housekeeping 的劈分本来就依赖于对偶动力学的选择。
+                  </>
+                ) : (
+                  <>
+                    A GFlowNet is a <strong>non-equilibrium steady state</strong>. Flow matching is Kirchhoff's
+                    current law, and every edge of a DAG with a source and sinks carries net current, whereas
+                    equilibrium demands that all net currents vanish. GFN's "detailed balance" does not say the
+                    current is zero; it says p_B is exactly the <strong>dual</strong> of p_F with respect to F.
+                    <br />
+                    <br />
+                    So W is the <strong>excess (Hatano–Sasa) entropy production</strong>, not equilibrium work,
+                    and <M tex={String.raw`\mathrm{Var}[W]=0`} /> means <strong>zero excess dissipation</strong>{" "}
+                    — the housekeeping current carrying Z from source to sinks is nonzero by construction and
+                    never enters the balance residual.
+                    <br />
+                    <br />
+                    That also explains why GFN results depend on the choice of p_B: the excess/housekeeping
+                    split is defined only relative to a choice of dual dynamics.
+                  </>
+                )}
+              </div>
             </div>
 
             <div className="card">

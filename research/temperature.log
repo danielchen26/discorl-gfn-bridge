@@ -1,0 +1,52 @@
+====================================================================================
+STEP 1  the exact soft family, and the landscape it lives on
+====================================================================================
+  log R spans -2.00 to 3.43; target entropy 2.304 against 3.584 for uniform
+  cold member return 2.285 against -2.000 for stopping at the source, so a cold agent has to travel
+  member at lambda = 1 equals the target R/Z to 1.665e-16   PASS
+  shaping by the geometric potential moves the soft-optimal policy by 1.776e-15
+  at every coefficient tried, so the family being fitted is the same one PASS
+
+  I1  the fit, fed exact family members with no sampling
+          true    fitted    residual
+          0.10    0.1000    2.70e-11
+          0.30    0.3000    9.41e-17
+          0.70    0.7000   -2.46e-16
+          1.00    1.0000   -2.16e-17
+          1.50    1.5000   -2.41e-16
+          3.00    3.0000    1.50e-16
+          6.00    6.0000   -1.72e-16
+      recovers every coefficient to 0.5 percent, residual below 1e-9: PASS
+
+  I2  the whole pipeline -- sample 200000 trajectories from the exact
+      policy, bucket by state, forward DP, fit
+      the bucketing error carries no sampling noise: on a DAG whose
+      trajectories all start at the source, the DP under the bucketed
+      policy reproduces the empirical visit frequencies identically, so
+      any departure from zero measures dependence on history alone
+          true    fitted    residual   bucket err   seen
+          0.30    0.2993    3.63e-05     2.22e-16     35
+          0.70    0.7003    9.91e-05     2.78e-17     36
+          1.00    0.9990    8.53e-05     2.78e-17     36
+          1.50    1.4973    1.10e-04     5.55e-17     36
+          3.00    3.0095    5.55e-05     5.55e-17     36
+      recovers every coefficient within 10 percent, bucketing exact: PASS
+
+====================================================================================
+STEP 2  arms in the MDP, 3 seeds, 5000 updates, probed every 1250
+====================================================================================
+  the best undiscounted return available is 2.285 with the log P_B payments and 3.431 without;
+  stopping at the source pays -2.000 either way, so an agent sitting there has not optimised
+
+  arm                    sd  step seen      bkt   return      H      KL  lam_eff    resid
+  ---------------------------------------------------------------------------------------
+  ladder ac c=0.0         0     0   36  1.6e-03   -2.281  3.173   3.626    1.876   3.1879
+  ladder ac c=0.0         0  1250   11  1.4e-04    0.926  0.400   3.186    0.655   2.8802
+  ladder ac c=0.0         0  2500   10  7.8e-05    0.998  0.349   3.166    0.637   2.8210
+  ladder ac c=0.0         0  3750   10  1.0e-05    1.118  0.257   3.141    0.607   2.7255
+  ladder ac c=0.0         0  5000   10  4.4e-05    1.100  0.263   3.158    0.613   2.7546   <- ok
+  ladder ac c=0.0         1     0   36  1.5e-03   -2.286  3.182   3.623    1.881   3.1818
+  ladder ac c=0.0         1  1250   12  5.3e-07    0.233  0.011   4.276    0.832   4.2164
+  ladder ac c=0.0         1  2500   12  3.1e-07    0.234  0.007   4.281    0.832   4.2213
+  ladder ac c=0.0         1  3750   12  1.1e-07    0.235  0.005   4.283    0.832   4.2231
+  ladder ac c=0.0         1  5000    6  0.0e+00    0.236  0.000   4.287    0.831   4.2276   <- ok

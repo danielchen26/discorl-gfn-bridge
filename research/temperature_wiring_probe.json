@@ -1,0 +1,334 @@
+{
+  "config": {
+    "batch": 64,
+    "rollout_len": 16,
+    "steps": 6000,
+    "probe_every": 1000,
+    "collect": 40,
+    "seeds": 3,
+    "lr": null,
+    "json": "research/temperature_wiring_probe.json"
+  },
+  "best_return_no_pb": 3.4310591919058657,
+  "best_return_pb": 2.284679634742141,
+  "per_run": [
+    {
+      "arm": "no-pb shaped disco",
+      "seed": 0,
+      "admissible": true,
+      "reason": "ok",
+      "curve": [
+        {
+          "step": 0,
+          "bucket_err": 0.0010257447360064176,
+          "states_seen": 36,
+          "return": -1.6577625514483556,
+          "h_traj": 3.171504791792777,
+          "soft": -1.6577625514483556,
+          "kl": 3.626726219105698,
+          "lambda_eff": 1.8748624078501681,
+          "residual": 3.1894771881911432,
+          "inside_sweep": true
+        },
+        {
+          "step": 1000,
+          "bucket_err": 0.00014956201446807496,
+          "states_seen": 36,
+          "return": -0.9356523590740132,
+          "h_traj": 5.06625792645455,
+          "soft": -0.9356523590740132,
+          "kl": 2.19810857650558,
+          "lambda_eff": 2.2327993726166335,
+          "residual": 1.618223388569206,
+          "inside_sweep": true
+        },
+        {
+          "step": 2000,
+          "bucket_err": 0.0007320160732513514,
+          "states_seen": 36,
+          "return": 2.7688261542105828,
+          "h_traj": 2.2571548873947895,
+          "soft": 2.7688261542105828,
+          "kl": 0.8854430401115626,
+          "lambda_eff": 1.3737440137845047,
+          "residual": 0.7581229540374179,
+          "inside_sweep": true
+        },
+        {
+          "step": 3000,
+          "bucket_err": 1.4459400204613893e-05,
+          "states_seen": 33,
+          "return": 3.3794684004159823,
+          "h_traj": 1.2369188638843305,
+          "soft": 3.3794684004159823,
+          "kl": 1.0610752910013304,
+          "lambda_eff": 1.0843653465534717,
+          "residual": 1.0516844933973333,
+          "inside_sweep": true
+        },
+        {
+          "step": 4000,
+          "bucket_err": 1.53200557156724e-05,
+          "states_seen": 30,
+          "return": 3.392433442953063,
+          "h_traj": 1.2974859699500858,
+          "soft": 3.392433442953063,
+          "kl": 1.062319176993925,
+          "lambda_eff": 1.0805154179180545,
+          "residual": 1.0537262804777952,
+          "inside_sweep": true
+        },
+        {
+          "step": 5000,
+          "bucket_err": 4.114550395062366e-06,
+          "states_seen": 29,
+          "return": 3.396333770300269,
+          "h_traj": 1.3220515508705977,
+          "soft": 3.396333770300269,
+          "kl": 1.07303031077311,
+          "lambda_eff": 1.0797793591269451,
+          "residual": 1.0645858786788722,
+          "inside_sweep": true
+        },
+        {
+          "step": 6000,
+          "bucket_err": 6.943839691732627e-06,
+          "states_seen": 29,
+          "return": 3.3937025724577436,
+          "h_traj": 1.2144573277252544,
+          "soft": 3.3937025724577436,
+          "kl": 1.0752020795447963,
+          "lambda_eff": 1.0803723838299426,
+          "residual": 1.0666372541171816,
+          "inside_sweep": true
+        }
+      ],
+      "final": {
+        "step": 6000,
+        "bucket_err": 6.943839691732627e-06,
+        "states_seen": 29,
+        "return": 3.3937025724577436,
+        "h_traj": 1.2144573277252544,
+        "soft": 3.3937025724577436,
+        "kl": 1.0752020795447963,
+        "lambda_eff": 1.0803723838299426,
+        "residual": 1.0666372541171816,
+        "inside_sweep": true
+      },
+      "gap": 0.037356619448122075
+    },
+    {
+      "arm": "no-pb shaped disco",
+      "seed": 1,
+      "admissible": true,
+      "reason": "ok",
+      "curve": [
+        {
+          "step": 0,
+          "bucket_err": 0.0010047075258332594,
+          "states_seen": 36,
+          "return": -1.660473544359116,
+          "h_traj": 3.173573368967788,
+          "soft": -1.660473544359116,
+          "kl": 3.6325769150180007,
+          "lambda_eff": 1.8815266187430373,
+          "residual": 3.191729306290105,
+          "inside_sweep": true
+        },
+        {
+          "step": 1000,
+          "bucket_err": 0.00014373452907816275,
+          "states_seen": 36,
+          "return": -1.4803686588276217,
+          "h_traj": 3.764269569891483,
+          "soft": -1.4803686588276217,
+          "kl": 3.1673979703867263,
+          "lambda_eff": 1.9665466033433365,
+          "residual": 2.688491340611236,
+          "inside_sweep": true
+        },
+        {
+          "step": 2000,
+          "bucket_err": 0.0014640989218166478,
+          "states_seen": 36,
+          "return": 1.6653799062973076,
+          "h_traj": 3.9754315318000115,
+          "soft": 1.6653799062973076,
+          "kl": 1.0443447971924547,
+          "lambda_eff": 1.6235722841098392,
+          "residual": 0.7814264622048592,
+          "inside_sweep": true
+        },
+        {
+          "step": 3000,
+          "bucket_err": 0.00011006120206658032,
+          "states_seen": 30,
+          "return": 3.028466322104474,
+          "h_traj": 1.0909249219902766,
+          "soft": 3.028466322104474,
+          "kl": 1.1670332207629208,
+          "lambda_eff": 1.1148756440971377,
+          "residual": 1.1500889352965054,
+          "inside_sweep": true
+        },
+        {
+          "step": 4000,
+          "bucket_err": 6.200472622204523e-05,
+          "states_seen": 26,
+          "return": 3.0145156899698797,
+          "h_traj": 0.9906286245048593,
+          "soft": 3.0145156899698797,
+          "kl": 1.217219630671577,
+          "lambda_eff": 1.1160772779363008,
+          "residual": 1.1999272391338782,
+          "inside_sweep": true
+        },
+        {
+          "step": 5000,
+          "bucket_err": 0.00030245575307508155,
+          "states_seen": 22,
+          "return": 2.9949368094000293,
+          "h_traj": 1.0241422565741853,
+          "soft": 2.9949368094000293,
+          "kl": 1.2411732081629445,
+          "lambda_eff": 1.1182936582100766,
+          "residual": 1.2232507563215396,
+          "inside_sweep": true
+        },
+        {
+          "step": 6000,
+          "bucket_err": 1.8959269542095925e-06,
+          "states_seen": 17,
+          "return": 2.987885000494921,
+          "h_traj": 1.072913155670431,
+          "soft": 2.987885000494921,
+          "kl": 1.2436913360725455,
+          "lambda_eff": 1.1182091118625526,
+          "residual": 1.2257888306379425,
+          "inside_sweep": true
+        }
+      ],
+      "final": {
+        "step": 6000,
+        "bucket_err": 1.8959269542095925e-06,
+        "states_seen": 17,
+        "return": 2.987885000494921,
+        "h_traj": 1.072913155670431,
+        "soft": 2.987885000494921,
+        "kl": 1.2436913360725455,
+        "lambda_eff": 1.1182091118625526,
+        "residual": 1.2257888306379425,
+        "inside_sweep": true
+      },
+      "gap": 0.44317419141094483
+    },
+    {
+      "arm": "no-pb shaped disco",
+      "seed": 2,
+      "admissible": true,
+      "reason": "ok",
+      "curve": [
+        {
+          "step": 0,
+          "bucket_err": 0.0009285348138927674,
+          "states_seen": 36,
+          "return": -1.6390521142020773,
+          "h_traj": 3.2357724711804057,
+          "soft": -1.6390521142020773,
+          "kl": 3.572369188530353,
+          "lambda_eff": 1.8808006602952845,
+          "residual": 3.1326281765921347,
+          "inside_sweep": true
+        },
+        {
+          "step": 1000,
+          "bucket_err": 0.0001821119329945553,
+          "states_seen": 36,
+          "return": -1.252527809320069,
+          "h_traj": 4.393486184458495,
+          "soft": -1.252527809320069,
+          "kl": 2.6873821773588262,
+          "lambda_eff": 2.0779470342235773,
+          "residual": 2.162410679617692,
+          "inside_sweep": true
+        },
+        {
+          "step": 2000,
+          "bucket_err": 0.0001070011751460459,
+          "states_seen": 35,
+          "return": 2.6765028480736945,
+          "h_traj": 2.0564421583737587,
+          "soft": 2.6765028480736945,
+          "kl": 1.1887249373684146,
+          "lambda_eff": 0.4910095908884708,
+          "residual": 0.5769613026008469,
+          "inside_sweep": true
+        },
+        {
+          "step": 3000,
+          "bucket_err": 0.00026197578647219055,
+          "states_seen": 31,
+          "return": 2.750607004631984,
+          "h_traj": 2.1155973854053967,
+          "soft": 2.750607004631984,
+          "kl": 0.9623449249382476,
+          "lambda_eff": 0.5820070894241991,
+          "residual": 0.5765264351628233,
+          "inside_sweep": true
+        },
+        {
+          "step": 4000,
+          "bucket_err": 6.507879801198602e-05,
+          "states_seen": 26,
+          "return": 3.067794486979719,
+          "h_traj": 1.4587161226315377,
+          "soft": 3.067794486979719,
+          "kl": 1.1518223881129919,
+          "lambda_eff": 1.1050318649987994,
+          "residual": 1.1374973150969874,
+          "inside_sweep": true
+        },
+        {
+          "step": 5000,
+          "bucket_err": 2.764964570539045e-06,
+          "states_seen": 29,
+          "return": 3.0380447993627078,
+          "h_traj": 1.3245922397932157,
+          "soft": 3.0380447993627078,
+          "kl": 1.1991997493650315,
+          "lambda_eff": 1.1122320458743409,
+          "residual": 1.1829691303309413,
+          "inside_sweep": true
+        },
+        {
+          "step": 6000,
+          "bucket_err": 1.8372522789911194e-05,
+          "states_seen": 22,
+          "return": 2.9325573387937176,
+          "h_traj": 1.3402553649368723,
+          "soft": 2.9325573387937176,
+          "kl": 1.275386430460565,
+          "lambda_eff": 1.1237952055562146,
+          "residual": 1.255855668170596,
+          "inside_sweep": true
+        }
+      ],
+      "final": {
+        "step": 6000,
+        "bucket_err": 1.8372522789911194e-05,
+        "states_seen": 22,
+        "return": 2.9325573387937176,
+        "h_traj": 1.3402553649368723,
+        "soft": 2.9325573387937176,
+        "kl": 1.275386430460565,
+        "lambda_eff": 1.1237952055562146,
+        "residual": 1.255855668170596,
+        "inside_sweep": true
+      },
+      "gap": 0.4985018531121481
+    }
+  ],
+  "gap_mean": 0.32634422132373836,
+  "gap_std": 0.20558966100089676,
+  "reading": "THE CONTROL WAS CONFOUNDED -- with the payments removed AND the shaping on, the rule ends 0.326 from the best return, inside the same threshold the control failed at 1.636. What the control measured is the missing shaping, not the log P_B payments, so its VOID does not implicate the reduction."
+}

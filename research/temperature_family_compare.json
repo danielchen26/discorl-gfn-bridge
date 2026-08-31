@@ -1,0 +1,163 @@
+{
+  "config": {
+    "batch": 64,
+    "rollout_len": 16,
+    "steps": 6000,
+    "probe_every": 2000,
+    "collect": 40,
+    "seeds": 3,
+    "json": "research/temperature_family_compare.json"
+  },
+  "rows": [
+    {
+      "seed": 0,
+      "step": 0,
+      "admissible": true,
+      "reason": "ok",
+      "return": -2.279184212201999,
+      "h_traj": 3.171504791792777,
+      "soft_lambda": 1.8748624078501681,
+      "soft_residual": 3.1894771881911432,
+      "rule_c": 6.0,
+      "rule_residual": 0.012313274117952345
+    },
+    {
+      "seed": 0,
+      "step": 2000,
+      "admissible": true,
+      "reason": "ok",
+      "return": -2.0499822068698514,
+      "h_traj": 2.093028732325352,
+      "soft_lambda": 1.733173116246673,
+      "soft_residual": 4.1185749382718955,
+      "rule_c": 6.0,
+      "rule_residual": 0.10720562791335754
+    },
+    {
+      "seed": 0,
+      "step": 4000,
+      "admissible": true,
+      "reason": "ok",
+      "return": 2.241019805961607,
+      "h_traj": 0.10442973222400466,
+      "soft_lambda": 0.1951609478883463,
+      "soft_residual": 0.0730455093995717,
+      "rule_c": 0.2061292179865866,
+      "rule_residual": 0.07015468753244873
+    },
+    {
+      "seed": 0,
+      "step": 6000,
+      "admissible": true,
+      "reason": "ok",
+      "return": 2.231697580029788,
+      "h_traj": 0.10807629870533063,
+      "soft_lambda": 0.2132118548805724,
+      "soft_residual": 0.11238665290133124,
+      "rule_c": 0.23037442598054875,
+      "rule_residual": 0.10537087145272302
+    },
+    {
+      "seed": 1,
+      "step": 0,
+      "admissible": true,
+      "reason": "ok",
+      "return": -2.28755601279218,
+      "h_traj": 3.173573368967788,
+      "soft_lambda": 1.8815266187430373,
+      "soft_residual": 3.191729306290105,
+      "rule_c": 6.0,
+      "rule_residual": 0.01403135343541523
+    },
+    {
+      "seed": 1,
+      "step": 2000,
+      "admissible": true,
+      "reason": "ok",
+      "return": -2.0810534571113743,
+      "h_traj": 1.806912546221689,
+      "soft_lambda": 1.7473267758786126,
+      "soft_residual": 4.419059729639689,
+      "rule_c": 6.0,
+      "rule_residual": 0.170035383045915
+    },
+    {
+      "seed": 1,
+      "step": 4000,
+      "admissible": true,
+      "reason": "ok",
+      "return": 2.0932358504953834,
+      "h_traj": 0.3245429659158692,
+      "soft_lambda": 0.32293423049455616,
+      "soft_residual": 0.37434322542175386,
+      "rule_c": 0.39552753141939345,
+      "rule_residual": 0.29709408720597175
+    },
+    {
+      "seed": 1,
+      "step": 6000,
+      "admissible": true,
+      "reason": "ok",
+      "return": 2.206822939815971,
+      "h_traj": 0.11702539903609402,
+      "soft_lambda": 0.26358646346316217,
+      "soft_residual": 0.23479353239515716,
+      "rule_c": 0.3041650585627194,
+      "rule_residual": 0.20652999443228023
+    },
+    {
+      "seed": 2,
+      "step": 0,
+      "admissible": true,
+      "reason": "ok",
+      "return": -2.287213573637713,
+      "h_traj": 3.2357724711804057,
+      "soft_lambda": 1.8808006602952845,
+      "soft_residual": 3.1326281765921347,
+      "rule_c": 6.0,
+      "rule_residual": 0.013533207172771775
+    },
+    {
+      "seed": 2,
+      "step": 2000,
+      "admissible": true,
+      "reason": "ok",
+      "return": -2.031440243682736,
+      "h_traj": 1.8020555980886344,
+      "soft_lambda": 1.7127610800698299,
+      "soft_residual": 4.395195137312423,
+      "rule_c": 6.0,
+      "rule_residual": 0.1829710636863611
+    },
+    {
+      "seed": 2,
+      "step": 4000,
+      "admissible": true,
+      "reason": "ok",
+      "return": 1.5395936449543468,
+      "h_traj": 0.6238454739372873,
+      "soft_lambda": 0.5315088745333871,
+      "soft_residual": 1.3327435356849935,
+      "rule_c": 0.7735008583146508,
+      "rule_residual": 0.7353702118411604
+    },
+    {
+      "seed": 2,
+      "step": 6000,
+      "admissible": true,
+      "reason": "ok",
+      "return": 1.3860337298806606,
+      "h_traj": 0.6545263824834494,
+      "soft_lambda": 0.5844922542974985,
+      "soft_residual": 1.5973442094293242,
+      "rule_c": 0.8539790365669963,
+      "rule_residual": 0.8041812659455624
+    }
+  ],
+  "soft_residual": 0.6481747982419376,
+  "rule_residual": 0.3720273772768552,
+  "rule_c": 0.4628395070367548,
+  "soft_lambda": 0.3537635242137444,
+  "ceiling_25pct": 0.0861,
+  "reading": "NEITHER FAMILY -- soft 0.6482, rule 0.3720, both far above 0.0861. The discovered rule's distribution is not a tempered version of either, so 'what regularisation does it implement' has no answer of this shape on this MDP."
+}

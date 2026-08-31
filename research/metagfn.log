@@ -1,0 +1,25 @@
+==================================================================================
+STEP 1  the identity the corrected meta-objective rests on
+==================================================================================
+  Proposition 1: V_1(s0) = log Z - KL(q || P_B), with supremum log Z.
+  If that holds, maximising the entropy-regularised return in this MDP
+  IS minimising divergence to the target, at the price of a scalar.
+
+  shaping shifts every return by -Phi(source) = -3.58352, a constant,
+  so the identity to check is V_1 + Phi(source) = log Z
+
+    task     log Z   V_1 + Phi(s0)         gap   KL of that policy
+       0   4.28980         4.28980    0.00e+00           -9.12e-17
+       1   6.51543         6.51543   -8.88e-16           -3.61e-16
+       2   6.28068         6.28068    0.00e+00           -2.64e-16
+       3   7.06514         7.06514    0.00e+00            4.95e-16
+
+  the supremum of V_1 is log Z, and the policy attaining it has zero divergence: PASS
+
+==================================================================================
+STEP 2  meta-learn the same rule twice, changing only that scalar
+==================================================================================
+  1500 outer steps, 30 inner steps, 16 training landscapes, 3 seeds
+  the rule reads only local quantities and never sees R/Z or log Z
+
+  selecting step sizes per arm, scored by that arm's own training loss

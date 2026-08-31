@@ -1,0 +1,160 @@
+{
+  "ceiling": {
+    "0.1": {
+      "nats": 0.01510107070960987,
+      "at_lambda": 0.7444601859694318
+    },
+    "0.25": {
+      "nats": 0.08607067333870738,
+      "at_lambda": 0.658459604526116
+    },
+    "0.5": {
+      "nats": 0.29856276590949254,
+      "at_lambda": 0.5823938727201344
+    },
+    "1.0": {
+      "nats": 0.9345170247044552,
+      "at_lambda": 0.4556088147820484
+    }
+  },
+  "diameter": {
+    "nats": 24.55172521309194,
+    "lambdas": [
+      6.0,
+      0.05000000000000001
+    ]
+  },
+  "per_lambda": [
+    {
+      "lam": 0.05,
+      "costs": [
+        8.915651451225937e-08,
+        2.0848631905261487e-06,
+        4.609433396610683e-05,
+        0.001593196068418232
+      ],
+      "entropy": 3.797378879463533e-07
+    },
+    {
+      "lam": 0.1,
+      "costs": [
+        0.00012218775481755308,
+        0.0012469561998292814,
+        0.009201684610569378,
+        0.07779656796674847
+      ],
+      "entropy": 0.0019823863303546573
+    },
+    {
+      "lam": 0.25,
+      "costs": [
+        0.004735630287244639,
+        0.032545061851129764,
+        0.14413458960231423,
+        0.6198191237773573
+      ],
+      "entropy": 0.2655953174908405
+    },
+    {
+      "lam": 0.5,
+      "costs": [
+        0.013115505413643935,
+        0.07901624894525758,
+        0.2906871340295105,
+        0.9327491152266526
+      ],
+      "entropy": 1.2733309393842094
+    },
+    {
+      "lam": 0.75,
+      "costs": [
+        0.01508817195723614,
+        0.08403658464358636,
+        0.2721777272870132,
+        0.7029842215063553
+      ],
+      "entropy": 1.9343515740310557
+    },
+    {
+      "lam": 1.0,
+      "costs": [
+        0.012828097744299551,
+        0.06626353802668983,
+        0.19419812719596202,
+        0.44603073338398036
+      ],
+      "entropy": 2.3035998109803244
+    },
+    {
+      "lam": 1.5,
+      "costs": [
+        0.006765888348196698,
+        0.03248851049816911,
+        0.0881609201648876,
+        0.18895022134262762
+      ],
+      "entropy": 2.614469306208024
+    },
+    {
+      "lam": 3.0,
+      "costs": [
+        0.0013974385173509442,
+        0.006574300880766659,
+        0.017604118534022987,
+        0.037734434417810866
+      ],
+      "entropy": 2.6861509679457503
+    }
+  ],
+  "placed": [
+    {
+      "arm": "ladder ac c=0.0",
+      "lambda_eff": 0.7584782691512567,
+      "residual": 3.736167969665807,
+      "reading": "more than a 100% temperature error can cost anywhere"
+    },
+    {
+      "arm": "ladder ac c=0.3",
+      "lambda_eff": 0.6510987192314207,
+      "residual": 1.371840396622274,
+      "reading": "more than a 100% temperature error can cost anywhere"
+    },
+    {
+      "arm": "ladder ac c=1.0",
+      "lambda_eff": 1.014436090091808,
+      "residual": 1.5640493342204411,
+      "reading": "more than a 100% temperature error can cost anywhere"
+    },
+    {
+      "arm": "ladder ac c=3.0",
+      "lambda_eff": 1.6389372071757882,
+      "residual": 3.00884580086377,
+      "reading": "more than a 100% temperature error can cost anywhere"
+    },
+    {
+      "arm": "disco shaped",
+      "lambda_eff": 0.36221741489573595,
+      "residual": 0.6487541958738036,
+      "reading": "more than a 50% temperature error can cost anywhere"
+    },
+    {
+      "arm": "disco shaped r-aug 1",
+      "lambda_eff": 0.5866951894943985,
+      "residual": 1.9619405809208812,
+      "reading": "more than a 100% temperature error can cost anywhere"
+    },
+    {
+      "arm": "disco unshaped",
+      "lambda_eff": 1.6951265558097581,
+      "residual": 6.140111436868992,
+      "reading": "more than a 100% temperature error can cost anywhere"
+    },
+    {
+      "arm": "CONTROL no-pb disco",
+      "lambda_eff": 0.281374668874074,
+      "residual": 0.28199911001655276,
+      "reading": "more than a 25% temperature error can cost anywhere"
+    }
+  ],
+  "read": "research/temperature.json"
+}

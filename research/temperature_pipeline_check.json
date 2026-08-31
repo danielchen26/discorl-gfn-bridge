@@ -1,0 +1,89 @@
+{
+  "config": {
+    "batch": 64,
+    "steps": 400,
+    "seeds": 3,
+    "lam": 1.0,
+    "json": "research/temperature_pipeline_check.json"
+  },
+  "rows": [
+    {
+      "seed": 0,
+      "filtered": false,
+      "post_terminal_frac": 0.1312890625,
+      "lambda_eff": 1.0038496088558062,
+      "residual": 0.005690527026575763,
+      "states_seen": 36,
+      "bucket_err": 0.0014235222666940661,
+      "kl_to_target": 0.00571194433658882,
+      "return": -0.3782507806684846,
+      "h_traj": 4.891310441319485
+    },
+    {
+      "seed": 1,
+      "filtered": false,
+      "post_terminal_frac": 0.1308984375,
+      "lambda_eff": 0.9913100115989743,
+      "residual": 0.005537949770939472,
+      "states_seen": 36,
+      "bucket_err": 0.0009678159307386358,
+      "kl_to_target": 0.0056489704658831165,
+      "return": -0.33392727411732126,
+      "h_traj": 4.84750698413996
+    },
+    {
+      "seed": 2,
+      "filtered": false,
+      "post_terminal_frac": 0.1313671875,
+      "lambda_eff": 0.9903983316313587,
+      "residual": 0.007341137061754833,
+      "states_seen": 36,
+      "bucket_err": 0.001847954881810887,
+      "kl_to_target": 0.007476775966694032,
+      "return": -0.36840038697235655,
+      "h_traj": 4.880504541682354
+    },
+    {
+      "seed": 0,
+      "filtered": true,
+      "post_terminal_frac": 0.1312890625,
+      "lambda_eff": 1.0538566033090275,
+      "residual": 0.021551043380591023,
+      "states_seen": 36,
+      "bucket_err": 0.05685030625879536,
+      "kl_to_target": 0.02549526827647185,
+      "return": -0.5322499539520127,
+      "h_traj": 4.984471603264334
+    },
+    {
+      "seed": 1,
+      "filtered": true,
+      "post_terminal_frac": 0.1308984375,
+      "lambda_eff": 1.0064352571253972,
+      "residual": 0.008532321444955611,
+      "states_seen": 36,
+      "bucket_err": 0.020174234175424077,
+      "kl_to_target": 0.00859208562638008,
+      "return": -0.37960511218690657,
+      "h_traj": 4.887672715392235
+    },
+    {
+      "seed": 2,
+      "filtered": true,
+      "post_terminal_frac": 0.1313671875,
+      "lambda_eff": 0.9808430139581115,
+      "residual": 0.008924766931807448,
+      "states_seen": 36,
+      "bucket_err": 0.008400202194888878,
+      "kl_to_target": 0.009470663980065228,
+      "return": -0.3396893474514022,
+      "h_traj": 4.848710045237599
+    }
+  ],
+  "lambda_unfiltered": 0.995185984028713,
+  "lambda_filtered": 1.013711624797512,
+  "residual_unfiltered": 0.006189871286423357,
+  "residual_filtered": 0.013002710585784694,
+  "ceiling_25pct": 0.0861,
+  "reading": "THE PIPELINE IS SOUND -- the exact policy survives the env path at lambda_eff = 0.995, residual 0.0062, so the residuals the arms show are theirs and the reading stands."
+}

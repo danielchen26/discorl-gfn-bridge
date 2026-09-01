@@ -1,0 +1,17 @@
+Provenance note, added after the fact.
+
+This commit was made with git add -A and swept in twelve files that its
+message does not describe and that were not written for it. Six scripts
+and six result files, 3232 of the 3827 lines added:
+
+  temperature_pipeline_check      temperature_residual_scale
+  temperature_rule_fixedpoint     temperature_critic_ablation
+  temperature_family_compare      temperature_family_compare_6seed
+
+They came from a concurrent session working in this same repository, on
+follow-ups to research/temperature.py. Only research/metagfn.py and its
+result and log belong to the commit message above.
+
+They are not stray. They close the gaps temperature.py left open, and
+two of them correct it. Recorded here rather than by rewriting a pushed
+commit.

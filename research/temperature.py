@@ -671,11 +671,21 @@ def main() -> int:
     # The ladder runs shaped, because shaping provably leaves the soft family
     # pointwise unchanged while letting the agents actually optimise, and a
     # ladder of agents that have not optimised measures nothing.
+    #
+    # It is a ranking, not a calibration, and an earlier version of this file
+    # wrongly treated entropy_cost c as the family's lambda.
+    # research/temperature_rule_fixedpoint.py settles it without training: this
+    # update rule's exact fixed point is pi ~ exp(Q_pi / c) with the ORDINARY
+    # Q_pi, which is a different one-parameter family. It coincides with the
+    # soft one below c about 0.5 and leaves it above, and at c = 1 the exact
+    # fixed point sits at lambda_eff 0.836 with residual 0.685, eight times the
+    # ceiling below. So no rung pins the absolute scale; the c to lambda map has
+    # to be computed, and there it is monotone and invertible.
     ladder = [(f"ladder ac c={c}", "actor_critic", 0.0, c, True, True)
               for c in (0.0, 0.3, 1.0, 3.0)]
-    # An arm whose coefficient is exactly one by construction: the entropy is
-    # inside the reward, so the critic bootstraps it and the arm is soft RL at
-    # precisely alpha rather than approximately.
+    # Entropy inside the reward instead of the loss. The critic bootstraps it,
+    # so this arm is soft RL at alpha in the population limit -- but that is an
+    # argument, not a measurement, and it is not used to anchor anything.
     exact_arm = [("ladder ac r-aug 1", "actor_critic", 1.0, 0.0, True, True)]
     probes = [("disco shaped", "disco", 0.0, 0.0, True, True),
               ("disco shaped r-aug 1", "disco", 1.0, 0.0, True, True)]
@@ -781,18 +791,28 @@ def main() -> int:
         print(f"  and with the geometric potential shaped in, which leaves the soft "
               f"family pointwise unchanged, {shaped_gap:.3f} from it")
 
+    # The ladder ranks; it does not calibrate. See the note where it is built.
     lad = [(c, lam(n)) for n, _, _, c, _, _ in ladder if lam(n) is not None]
     mono = len(lad) >= 3 and all(lad[i][1] < lad[i + 1][1] for i in range(len(lad) - 1))
     if lad:
-        print(f"  ladder monotone in the coefficient we set: "
-              f"{'PASS' if mono else 'FAIL'}   ({len(lad)}/{len(ladder)} arms read)   "
+        print(f"  ladder, ranking only, monotone in entropy_cost: "
+              f"{'yes' if mono else 'no'}   ({len(lad)}/{len(ladder)} arms read)   "
               + "  ".join(f"c={c}->{v:.2f}" for c, v in lad))
-    ra = lam("ladder ac r-aug 1")
-    if ra is not None:
-        print(f"  the arm whose coefficient is exactly 1 by construction reads "
-              f"{ra:.3f}")
+
+    # What counts as too large a residual is measured, not chosen.
+    # research/temperature_residual_scale.py sweeps the family and reports the
+    # most a given temperature error can cost anywhere in it:
+    #   10 percent  0.0151 nats     50 percent   0.2986
+    #   25 percent  0.0861          100 percent  0.9345
+    # against a family diameter of 24.55 nats from lambda 0.05 to 6. An earlier
+    # version of this file used 0.4, which was picked. CEILING is the 25 percent
+    # figure: a residual above it cannot be a temperature error of any size
+    # worth calling small.
+    CEILING = 0.0861
 
     d0, dres = lam("disco shaped"), res("disco shaped")
+    print(f"\n  a residual above {CEILING} nats is more than a 25 percent temperature "
+          f"error can cost anywhere in this family")
     print()
     if wire is not None and wire > 1.0:
         verdict = ("VOID -- the discovered rule does not reach the best return even "
@@ -805,22 +825,31 @@ def main() -> int:
         verdict = (f"INCONCLUSIVE -- even shaped, the discovered rule ends "
                    f"{shaped_gap:.2f} short of the best return, so its distribution "
                    f"is that of an agent that has not finished optimising")
-    elif dres is not None and dres > 0.4:
-        verdict = (f"OUTSIDE THE FAMILY -- no coefficient describes the discovered "
-                   f"rule; the best fit leaves a residual of {dres:.3f}")
-    elif not mono:
-        verdict = ("VOID -- the readout is not monotone in a coefficient we set "
-                   "ourselves, so nothing it says about a discovered rule can be read")
+    elif dres is not None and dres > CEILING:
+        # Not "outside the family". An earlier version said that and it was
+        # wrong: research/temperature_gap_confound.py regresses this residual on
+        # how far each seed got from the achievable return and finds pearson
+        # +0.996, R^2 0.993, with an intercept of 0.041 nats at zero gap --
+        # inside the ceiling, and stable under leave-one-out. A family misfit
+        # would not care how well the agent optimised. So a large residual here
+        # is a statement about optimisation until that regression says otherwise.
+        verdict = (f"NO READING WITHOUT THE GAP CHECK -- the best fit leaves "
+                   f"{dres:.3f} nats, {dres / CEILING:.0f} times what a 25 percent "
+                   f"temperature error can cost, but this residual tracks the "
+                   f"optimisation gap almost exactly, so the nearest coefficient "
+                   f"{d0:.3f} cannot be read as a temperature and the rule cannot be "
+                   f"called outside the family. Run "
+                   f"research/temperature_gap_confound.py on these seeds")
     elif abs(d0 - 1.0) < 0.15:
         verdict = (f"GFLOWNET HERE -- the discovered rule implements lambda_eff = "
-                   f"{d0:.3f} unaided, and lambda = 1 is exactly a GFlowNet")
+                   f"{d0:.3f} with residual {dres:.4f}, inside the ceiling, and "
+                   f"lambda = 1 is exactly a GFlowNet")
     else:
         side = "colder" if d0 < 1 else "hotter"
-        verdict = (f"NOT A GFLOWNET, AND {1 / d0:.1f} TIMES {side.upper()} -- in the "
-                   f"MDP whose soft-optimal policy at lambda = 1 is exactly a "
-                   f"GFlowNet, the discovered rule solves the problem but settles at "
-                   f"an effective entropy coefficient of {d0:.3f}, residual "
-                   f"{dres:.3f}")
+        verdict = (f"NOT A GFLOWNET, AND {1 / d0:.1f} TIMES {side.upper()} -- the "
+                   f"discovered rule solves the problem but settles at an effective "
+                   f"entropy coefficient of {d0:.3f}, residual {dres:.4f} inside the "
+                   f"ceiling of {CEILING}")
     print(f"Verdict: {verdict}")
 
     out = {

@@ -20,9 +20,11 @@
 \newcommand{\R}{\mathbb{R}}
 \newcommand{\E}{\mathbb{E}}
 \newcommand{\KL}{D_{\mathrm{KL}}}
+\newcommand{\us}{\_\allowbreak}
 
 \title{\bf Does a Discovered Reinforcement Learning Rule\\ Minimise Anything?\\[2mm]
-\large A gradient-field audit of DiscoRL}
+\large A gradient-field audit of DiscoRL, and what it does in the MDP\\
+whose soft-optimal policy is exactly a GFlowNet}
 
 \author{Tianchi Chen}
 \date{\today}
@@ -61,8 +63,34 @@ term is $1.1\%$ of the update field in Frobenius norm, so the antisymmetric
 share of the whole update is $0.77\%$. The obstruction is structural and small,
 and reporting either half alone misleads. Three probes of what the
 discovered predictions represent all return nothing, against a positive control
-that works. We report the traps that silently return the wrong answer, and two
+that works. We report the traps that silently return the wrong answer, and the
 claims of our own that we withdrew.
+
+\medskip
+That answer makes a second question askable. Tiapkin et al.\ prove that a
+GFlowNet is exactly the soft-optimal policy of an explicit MDP --- interior
+rewards $\log P_B$, terminal reward $\log R$, entropy coefficient one --- so
+``meta-learn a GFlowNet update rule'' is a well-posed plan and not an analogy.
+We check the reduction on a hypergrid and it holds to $10^{-16}$, including over
+fifty random backward policies. The MDP it produces then defeats Disco103: the
+rule stops at the source, $4.285$ below the achievable return, while the same
+rule, network, observation and budget solve the same grid to within $0.552$ once
+the per-step $\log P_B$ payments are removed. Potential shaping by a reward-free
+geometric potential recovers most of that, to a gap of $0.323$, and provably does
+not move the target: the soft-optimal policy moves by $1.776 \times 10^{-15}$.
+Asking which tempered family the resulting sampler belongs to returns no verdict,
+for a reason worth reporting: the best-fit residual is predicted by how far a
+seed got from the achievable return at $R^2 = 0.993$ and extrapolates to $0.0410$
+at zero gap, inside a measured ceiling of $0.0861$. At the best-optimising seed
+the sampler is inside both candidate families at once, about five times colder
+than the coefficient that would make it a GFlowNet. What does separate rules is
+cheaper than a new architecture. Changing one scalar in the meta-objective, from
+the return to $V_1 = \log Z - \KL(q \Vert P_B)$, moves a meta-learned local rule
+from $\KL$ $1.7035$ to $0.0666$ on held-out landscapes, a factor of $26$ with
+architecture, inputs, inner horizon and seeds identical. At matched budget that
+is about nineteen times closer than detailed balance; given thirteen times more
+steps detailed balance is about six times closer than the rule. It is a result
+about speed, not about asymptotic accuracy.
 \end{abstract}
 
 \section{Introduction}
@@ -115,8 +143,22 @@ including the environment family Disco103 was meta-trained on. The update is not
 a gradient field, and sits on the causal floor.
 \item Three negative probes of what the discovered predictions carry, with a
 positive control that works, bounding how strongly the negatives may be read.
-\item A withdrawal section. Two interpretations we published in an earlier draft
-of this work were wrong, and we say which and why.
+\item A withdrawal section. Six interpretations we published in earlier drafts of
+this work were wrong, and we say which and why. One of them is a headline result
+of the second half, retracted by a control we ran ourselves.
+\item A verified reduction and a negative result on top of it: the
+GFlowNet-to-RL correspondence holds numerically to $10^{-16}$
+(Section~\ref{sec:reduction}), and the MDP it produces defeats the discovered
+rule outright, with a wiring control that isolates the MDP as the cause
+(Section~\ref{sec:mdp}).
+\item A measured scale for ``large residual'' in place of a picked threshold, and
+a pipeline check that closes the one link the two estimator validations were
+blind to (Section~\ref{sec:instrument}). Against that scale the family question
+turns out to be confounded by optimisation, and we withdraw our own answer to it
+(Section~\ref{sec:gap}).
+\item A positive result of the same size as the negative ones: one scalar in the
+meta-objective, chosen by the reduction rather than by search, is worth a factor
+of $26$ in held-out distribution accuracy (Section~\ref{sec:scalar}).
 \end{enumerate}
 
 \section{The field and where its asymmetry lives}
@@ -374,7 +416,393 @@ random-initialisation null, and the response is local: moving the perturbation
 three steps later reduces it by $23\times$. The $y$ channel is not inert as a map;
 it is unidentified as a function.
 
-\section{Withdrawals}
+\section{The reduction, verified}\label{sec:reduction}
+
+Everything from here concerns a second question, and the first answer is what
+makes it worth asking. If \emph{which objective does this rule minimise} is
+malformed, one can still ask what a discovered rule does in a setting where the
+objective is fixed in advance and known exactly.
+
+Tiapkin et al.\ \cite{tiapkin2024} supply that setting. Their Theorem 1: for a
+DAG with terminal set $\mathcal X$, a fixed backward policy $P_B$ and a reward
+$R$, build the MDP whose interior transitions pay $\log P_B(s \mid s')$ and whose
+termination pays $\log R(x)$. At entropy coefficient \emph{exactly} $1$ the
+soft-optimal policy is the GFlowNet forward policy and $V^*(s) = \log F(s)$.
+Their Proposition 1 gives the entropy-regularised return at the source in closed
+form, $V_1^\pi(s_0) = \log Z - \KL(q^\pi \Vert P_B)$, with supremum $\log Z$.
+
+We derive none of this. We check it, on a hypergrid, against an exact dynamic
+program.
+
+\begin{table}[t]
+\centering
+\begin{tabular}{llr}
+\toprule
+ & Check & Result \\
+\midrule
+R1 & $\max_s \lvert V^*(s) - \log F(s)\rvert$ & $4.753\times 10^{-16}$ \\
+R2 & $\lvert V^*(s_0) - \log Z\rvert$ & $0$ exactly \\
+R3 & $\max_x \lvert p(x) - R(x)/Z\rvert$ & $2.776\times 10^{-17}$ \\
+R4 & same, over $50$ random backward policies & worst $1.665\times 10^{-16}$ \\
+\bottomrule
+\end{tabular}
+\caption{The reduction checked numerically on a hypergrid. R4 is the statement
+that the backward policy is a gauge freedom, exercised rather than argued.}
+\label{tab:reduction}
+\end{table}
+
+Table~\ref{tab:reduction} is the result. The coefficient is not a free parameter,
+and Remark 3 of the same paper says what moving it costs. Pricing that remark
+here, as the KL of the terminal distribution to $R/Z$, gives $\lambda = 0.9
+\to 0.0367$, $1.0 \to -6.5\times 10^{-17}$, $1.1 \to 0.0386$, $2.0 \to 1.134$
+and $4.0 \to 1.782$. The reduction is exact at one and at no other coefficient,
+and the price of being wrong about it grows quickly.
+
+This settles a question of well-posedness rather than of performance. Because the
+correspondence is exact, ``meta-learn a GFlowNet update rule'' names a concrete
+MDP with a concrete entropy coefficient, and a rule can be dropped into it and
+scored. The rest of the paper does that.
+
+\section{The MDP the reduction produces}\label{sec:mdp}
+
+The first thing to record is that Disco103 has no entropy coefficient to set. Its
+\texttt{hyper\us params} are \texttt{pi\us cost}, \texttt{y\us cost},
+\texttt{z\us cost}, \texttt{value\us cost}, \texttt{aux\us policy\us cost},
+\texttt{target\us params\us coeff}, \texttt{value\us fn\us td\us lambda} and
+\texttt{discount}. The actor-critic in the same library carries an
+\texttt{entropy\us cost} of $0.2$; the discovered rule carries no such knob. This
+is verified in source, not read off the paper.
+
+The environment is a $6\times 6$ grid with three smooth reward modes, $\log R$
+spanning $5.43$. The best undiscounted return available is $2.285$ with the
+$\log P_B$ payments in place and $3.431$ without them. Stopping at the source pays
+$-2.000$.
+
+\begin{table}[t]
+\centering
+\begin{tabular}{lrrl}
+\toprule
+Arm & Return & Gap to best & Residual \\
+\midrule
+disco, unshaped reduction & $-2.000$ & $+4.285$ & $6.14$ \\
+disco, same grid, $\log P_B$ payments removed & $2.879$ & $+0.552$ & (control) \\
+disco, shaped reduction & $1.961$ & $+0.323$ & $0.649$ \\
+\bottomrule
+\end{tabular}
+\caption{Three arms on the same grid, three seeds. The middle row is a wiring
+control and carries no temperature meaning, so no residual is quoted for it.}
+\label{tab:mdp}
+\end{table}
+
+\paragraph{The failure is the MDP, not the wiring.} The unshaped number is
+identical to three decimals across all three seeds, which is already a hint that
+nothing stochastic is happening. The middle row of Table~\ref{tab:mdp} settles it:
+the same rule, the same network, the same observation and the same budget solve
+the same grid to a gap of $0.552$ once the per-step payments are removed. That
+row is a control on the harness and nothing else. It is not an arm at some other
+temperature, and its residual would not mean anything, so we do not report one.
+
+\paragraph{Mechanism.} Each interior step pays about $-0.69$. Stopping
+immediately therefore returns $-2.000$, which is a genuine improvement over the
+initial policy's $-2.281$, and escaping that basin requires a specific five-step
+path. The rule takes the improvement and stays. This is Remark 4 of
+\cite{tiapkin2024} --- soft actor-critic with an adaptive coefficient converging
+to a biased final policy --- reproduced for a discovered rule, which has no
+coefficient to adapt in the first place.
+
+\section{Shaping}\label{sec:shaping}
+
+The basin is an optimisation obstacle, and potential shaping is the standard
+instrument for one. Let $\Phi$ be the soft value at coefficient $1$ of the same
+DAG with the reward flattened away. This matters and is the whole reason the
+section exists: $\Phi$ is pure graph geometry and never reads $R$, so it cannot
+be the answer smuggled in as a hint.
+
+For the shaped reward $r' = r + \Phi(s') - \Phi(s)$,
+\begin{align}
+  \lambda \log \sum_a \exp\!\big((r' + V'(s'))/\lambda\big) &= V(s) - \Phi(s),
+  \label{eq:shape-value}\\
+  \pi' \;\propto\; \exp\!\big((r + V(s'))/\lambda\big) &= \pi .
+  \label{eq:shape-policy}
+\end{align}
+The value function shifts by $\Phi$ and the soft-optimal policy does not move.
+
+We checked this pointwise rather than resting on the algebra. The maximum change
+in the soft-optimal policy over $\lambda \in \{0.1, 0.5, 1, 2, 5\}$ is
+$1.776\times 10^{-15}$. So the third row of Table~\ref{tab:mdp} is the same
+target reached from a better-conditioned starting point, and the gap it closes,
+$4.285$ down to $0.323$, is entirely optimisation.
+
+\section{The instrument}\label{sec:instrument}
+
+Asking whether the resulting sampler is a tempered one requires an instrument,
+and the instrument has to be trusted before its readings are. The soft family is
+computed exactly by value iteration; an agent is bucketed into a
+state-conditional policy; the coefficient is fitted by golden section against
+exactly recomputed members. The fit returns a coefficient \emph{and} the residual
+divergence that no coefficient removes, and it is the second number that was
+supposed to decide family membership.
+
+\begin{table}[t]
+\centering
+\begin{tabular}{ll}
+\toprule
+Check & Result \\
+\midrule
+member at $\lambda = 1$ equals $R/Z$ & $1.665\times 10^{-16}$ \\
+I1, fed exact members, no sampling & all $7$ coefficients to $4$ decimals, residual $10^{-16}$ \\
+I2, sample $\to$ bucket $\to$ DP $\to$ fit & recovers to $0.5\%$ \\
+bucketing consistency & $10^{-17}$ \\
+\bottomrule
+\end{tabular}
+\caption{Validation of the readout before it is believed.}
+\label{tab:instrument}
+\end{table}
+
+\paragraph{The bucketing check carries no sampling noise.} On a DAG whose
+trajectories all begin at the source,
+\begin{equation}
+  \mathrm{reach}(c) \;=\; \sum_{p} \frac{n(p)}{N}\,\frac{n(p \to c)}{n(p)}
+  \;=\; \frac{n(c)}{N},
+  \label{eq:bucket}
+\end{equation}
+so the forward dynamic program run under the bucketed policy reproduces the
+empirical visit frequencies identically. The $10^{-17}$ in
+Table~\ref{tab:instrument} is therefore not a small statistical fluctuation that
+happened to come out small; any departure from zero would measure dependence on
+history alone.
+
+\begin{sloppypar}
+\paragraph{The link both validations were blind to.} I1 and I2 share a gap. The
+agents act in the \texttt{disco\_rl} environment and their rollouts are handed
+over wholesale, including rollout-boundary partial episodes, which the exact
+sampler used in I1 and I2 never produces.
+\texttt{temperature\_pipeline\_check.py} closes it by driving the exact
+soft-optimal policy through that same environment path and asking the readout
+what it sees: $\lambda_{\mathrm{eff}} = 0.995$ at residual $0.0062$. The pipeline
+is sound, so the residuals the arms show are theirs.
+\end{sloppypar}
+
+\paragraph{What counts as large, measured rather than picked.} A residual is only
+interpretable against the most a temperature error can cost anywhere in this
+family, so we measured that.
+
+\begin{table}[t]
+\centering
+\begin{tabular}{lr}
+\toprule
+Temperature error & Nats \\
+\midrule
+$10\%$ & $0.0151$ \\
+$25\%$ & $\mathbf{0.0861}$ \\
+$50\%$ & $0.2986$ \\
+$100\%$ & $0.9345$ \\
+family diameter, $\lambda = 0.05$ to $6.0$ & $24.55$ \\
+\bottomrule
+\end{tabular}
+\caption{The cost of being wrong about the coefficient. A residual below
+$0.0861$ cannot be distinguished from a temperature error of a quarter.}
+\label{tab:scale}
+\end{table}
+
+\texttt{temperature.py} originally declared an agent outside the family when the
+residual exceeded $0.4$. That number was picked and not measured. It has been
+replaced by the $25\%$ figure, $0.0861$, and the replacement is a withdrawal
+(Section~\ref{sec:withdrawals}). It is also what makes the next section's
+arithmetic readable, since without a scale there is nothing to compare an
+intercept against.
+
+\section{The misfit is the optimisation gap}\label{sec:gap}
+
+\paragraph{The ladder was never a calibration.} \texttt{temperature.py}
+calibrated its readout against actor-critic arms at \texttt{entropy\_cost} $c \in
+\{0, 0.3, 1, 3\}$, and an earlier version of that file described the arm at
+$c = 1$ as ``an arm whose coefficient is exactly one by construction''. That is
+false, and seeing it requires no training run at all: the exact fixed point of
+that update rule is $\pi \propto \exp(Q_\pi / c)$ with the \emph{ordinary}
+$Q_\pi$, which is a different one-parameter family. It coincides with the soft
+family below $c \approx 0.5$ and leaves it above, reaching residual $3.02$ at
+$c = 3$.
+
+The fixed point predicts arms it was never fitted to. At $c = 3$ it gives
+residual $3.021$ against the measured $3.009$, and $\lambda_{\mathrm{eff}}$
+$1.636$ against the measured $1.639$. At $c = 1$ it sits at
+$\lambda_{\mathrm{eff}} = 0.836$ with residual $0.685$, eight times the ceiling
+of Table~\ref{tab:scale}. No rung of the ladder pinned the absolute scale; the
+ladder ranks, it does not calibrate.
+
+Computing the $c$-to-$\lambda$ map by dynamic programming repairs the reading.
+The map is monotone and invertible, and through it the shaped arm's aggregate
+$0.362$ is an equivalent entropy coefficient of $0.418$, against the $1.181$ that
+would place an arm at $\lambda = 1$. The map is what allows a coefficient in one
+family to be compared with a coefficient in the other at all. The aggregate it
+converts, however, does not survive what follows.
+
+\paragraph{A verdict we withdraw.} The soft family answers ``is it a GFlowNet''.
+The fixed-point family above answers ``is it an entropy-bonus actor-critic''. We
+fitted both to the shaped arm and reported the means over final-step admissible
+rows: soft $0.6482$ and fixed-point $0.3720$ at three seeds, soft $0.4734$ and
+fixed-point $0.2977$ at six. All four are above the $0.0861$ ceiling, and we read
+that as \emph{neither family}. The reading is withdrawn. The per-seed rows behind
+those means run from $0.041$ to $1.423$, and that range is not noise.
+
+\begin{table}[t]
+\centering
+\begin{tabular}{lllrrrrl}
+\toprule
+Seed & Adm. & Return & Gap & Soft $\lambda$ & Soft res. & Fixed-pt res. & Ceiling \\
+\midrule
+$0$ & yes & $2.247$ & $0.038$ & $0.1857$ & $\mathbf{0.0649}$ & $\mathbf{0.0626}$ & both \\
+$1$ & yes & $2.219$ & $0.066$ & $0.2541$ & $0.2091$ & $0.1860$ & neither \\
+$2$ & yes & $1.347$ & $0.937$ & $0.6217$ & $1.4234$ & $0.7091$ & neither \\
+$3$ & no  & $2.102$ & $0.182$ & $0.0300$ & $0.0413$ & $0.0413$ & both \\
+$4$ & yes & $1.903$ & $0.382$ & $0.3548$ & $0.5470$ & $0.4164$ & neither \\
+$5$ & yes & $2.223$ & $0.061$ & $0.2185$ & $0.1226$ & $0.1143$ & neither \\
+\bottomrule
+\end{tabular}
+\caption{The rows behind the means. Best achievable return in this MDP is
+$2.2847$, and the gap is the shortfall against it. The last column records
+whether the seed sits inside the $0.0861$ ceiling for each family.}
+\label{tab:gap}
+\end{table}
+
+Regressing residual on gap over the five admissible seeds,
+\begin{align}
+  \text{soft residual} &= 1.457 \times \text{gap} + 0.0410,
+  & \text{Pearson } &+0.996, \; R^2 = 0.993, \label{eq:gapfit-soft}\\
+  \text{fixed-point residual} &= 0.680 \times \text{gap} + 0.0958,
+  & \text{Pearson } &+0.982, \; R^2 = 0.963. \label{eq:gapfit-rule}
+\end{align}
+Leave-one-out on the soft fit keeps Pearson between $0.977$ and $0.999$ and the
+intercept between $0.0089$ and $0.0599$ nats, inside the ceiling in all six fits,
+so no single seed carries it.
+
+A family misfit would not care how well the agent optimised. This one is
+predicted by it at $R^2$ $0.993$ and vanishes into the measured ceiling as the
+gap goes to zero. The residual we were reading was a measurement of the
+difficulty Section~\ref{sec:mdp} established, not of family membership, and the
+verdict is withdrawn (Section~\ref{sec:withdrawals}).
+
+\paragraph{What the same rows do support.} Two statements, both weaker than the
+one they replace.
+
+First, once the discovered rule actually optimises this MDP, its terminal
+distribution sits within a $25\%$ temperature error of the soft family, at a
+coefficient near $0.19$ to $0.22$. That is about five times colder than the
+coefficient that would make it a GFlowNet. We write it that way rather than as a
+number, because the spread across seeds at comparable gaps is $0.186$ to $0.254$.
+
+Second, this MDP does not separate the two families. At the best-optimising
+admissible seed the two residuals differ by $0.0023$ nats, against a ceiling of
+$0.0861$. We say that rather than claiming either family wins.
+
+\paragraph{The one residual that is not a temperature error.} One reading in this
+neighbourhood does survive, and it is about the ladder rather than about the
+discovered rule. The arm \texttt{ladder ac c=1.0} reads $\lambda_{\mathrm{eff}} =
+1.014$, the right location, while leaving residual $1.564$; a $25\%$ temperature
+error costs at most $0.0861$ nats, so that is not a temperature error. Swapping
+the value head shows it is not value resolution either.
+
+\begin{table}[t]
+\centering
+\begin{tabular}{lrr}
+\toprule
+Value head & $\lambda_{\mathrm{eff}}$ & Residual \\
+\midrule
+categorical, \texttt{mav} $= 8$ & $1.0145$ & $1.531$ \\
+scalar & $1.0148$ & $1.553$ \\
+\bottomrule
+\end{tabular}
+\caption{Value resolution is excluded as the source of that arm's residual.}
+\label{tab:critic}
+\end{table}
+
+\section{One scalar in the meta-objective}\label{sec:scalar}
+
+The sections above are diagnostic, and they share a shape: a discovered rule is
+scored against a target it was never given. Proposition 1 of \cite{tiapkin2024}
+says the target is available cheaply, so the last experiment gives it to the
+meta-learner and changes nothing else.
+
+\paragraph{The identity, checked first.} In double precision, on the shaped
+rewards, $V_1 + \Phi(s_0) = \log Z$ to $0.00\mathrm{e}{+}00$, and the policy
+attaining it has divergence $5\times 10^{-16}$. The entropy-regularised return in
+this MDP \emph{is} distribution accuracy, at the price of a scalar computed from
+trajectories. Nothing about the rule needs to know that.
+
+\paragraph{The rule is local.} Per transition it reads the immediate reward, its
+own auxiliary prediction at both ends, the current logit and log-probability, and
+whether the action terminates. It never sees $R/Z$, $\log Z$ or the visit
+distribution. Everything downstream of the policy is closed form --- the grid is
+a layered DAG, so occupancy is $e_0^\top (I - T)^{-1}$ --- which removes sampling
+noise from the meta-gradient. What is reported is therefore the infinite-sample
+limit of the same rule. Meta-training uses $16$ random landscapes and the readout
+is on $16$ disjoint ones.
+
+\paragraph{Two controls.} First, each arm chooses its own step sizes, scored by
+\emph{its own} meta-objective on training landscapes and never by divergence to
+the target. Second, each rule must win on the scalar it was trained on. It does,
+at the trained horizon and four times beyond: on the return the return-trained
+rule scores $-0.341$ against $-1.327$, and on $V_1$ the $V_1$-trained rule scores
+$+2.231$ against $-0.298$. An earlier run of this comparison showed an $88\times$
+separation. The second control voided it --- the return-trained rule was losing
+on return itself, so that run compared a trained rule against an undertrained one
+--- and that is a withdrawal (Section~\ref{sec:withdrawals}).
+
+\begin{table}[t]
+\centering
+\begin{tabular}{lrr}
+\toprule
+Meta-objective & $\KL$ at $30$ steps & $\KL$ at $120$ steps \\
+\midrule
+the return & $1.7035 \pm 0.523$ & $1.6650 \pm 0.508$ \\
+$V_1 = \log Z - \KL$ & $\mathbf{0.0666 \pm 0.091}$ & $0.1043 \pm 0.114$ \\
+\bottomrule
+\end{tabular}
+\caption{Held-out landscapes, three seeds. Architecture, inputs, inner horizon
+and seeds are identical between the rows; only the scalar the meta-gradient
+ascends differs.}
+\label{tab:meta}
+\end{table}
+
+Table~\ref{tab:meta} is a factor of $26$ from one scalar. The seed spread,
+$0.091$ on a mean of $0.067$, is not small, and we would not report a factor of
+two on that evidence.
+
+\paragraph{Against the hand-designed loss.} Detailed balance at its best
+weighting is the reference point.
+
+\begin{table}[t]
+\centering
+\begin{tabular}{lr}
+\toprule
+ & $\KL$ \\
+\midrule
+DB, $30$ Adam steps (budget matched to the rule) & $1.2570$ \\
+learned rule, $30$ steps & $\mathbf{0.0666}$ \\
+DB, $400$ Adam steps & $0.0102$ \\
+\bottomrule
+\end{tabular}
+\caption{Matched budget and unmatched budget, on the same landscapes and under
+the same weighting.}
+\label{tab:db}
+\end{table}
+
+At matched budget the learned rule is about $19$ times closer. Given $13$ times
+more steps, detailed balance is about $6$ times closer than the rule. This is a
+result about speed and not about asymptotic accuracy, and it must be stated that
+way; the learned rule does not beat detailed balance in general and we make no
+such claim.
+
+\paragraph{A property of the baseline, found on the way.} The same
+detailed-balance loss lands anywhere from $0.010$ to $2.535$ as its weighting
+goes from full support to purely on-policy. Weighted purely on-policy it drives
+its \emph{own} residual to $10^{-4}$ while sitting at $\KL$ $0.92$, because
+states the policy abandons are never corrected. Rule and baseline are given the
+same weighting throughout, so the comparison above is about the update and not
+about exploration.
+
+\section{Withdrawals}\label{sec:withdrawals}
 
 An earlier draft of this work reported two interpretations that we now retract.
 Both arose from the same failure: reading a number that has a simple structural
@@ -391,6 +819,40 @@ saddle-point, primal--dual scheme, on the grounds that such schemes have an
 irreducibly antisymmetric coupling block. But Proposition~\ref{prop:floor} already
 accounts for the same number with no saddle structure whatsoever, and it was
 derived first. The simpler explanation suffices; the saddle reading is withdrawn.
+
+Four further retractions belong to the second half of this work, and the last is
+the largest.
+
+Third, the residual threshold $0.4$ in \texttt{temperature.py}, above which an
+agent was declared outside the soft family, was picked and not measured. It is
+replaced by $0.0861$, the cost of a $25\%$ temperature error, which is measured
+(Table~\ref{tab:scale}).
+
+Fourth, \texttt{temperature.py} treated the actor-critic \texttt{entropy\_cost}
+as the soft family's coefficient, and an earlier version of that file called the
+arm at $c = 1$ an arm whose coefficient is one by construction. It is not: the
+fixed point is $\pi \propto \exp(Q_\pi / c)$ with the ordinary $Q_\pi$, a
+different family (Section~\ref{sec:gap}). The ladder ranks, it does not
+calibrate, and the calibration reading is withdrawn.
+
+Fifth, we reported an $88\times$ separation between the two meta-objectives. Its
+own control voided it: the return-trained rule was losing on return, so the
+comparison was between a trained rule and an undertrained one. The separation we
+stand behind is the factor of $26$ in Table~\ref{tab:meta}.
+
+Sixth, we reported a verdict of \emph{neither family} for the shaped arm, from
+the means of the family comparison. The residual it rested on is predicted by the
+optimisation gap at $R^2$ $0.993$ and extrapolates to $0.0410$ nats at zero gap,
+inside the measured ceiling, so it was never evidence about family membership
+(Section~\ref{sec:gap}). The verdict is withdrawn. The reproducer is
+\texttt{research/temperature\_gap\_confound.py}. What replaces it is weaker and
+is stated as such: at the best-optimising seed the arm is inside both families,
+and this MDP does not separate them.
+
+The withdrawals of the earlier draft stand as well: the gauge theorem conceded to
+Brunswic et al., the detailed-balance reading of $|\beta/\alpha|$, the saddle
+reading of $\kappa^2$, and the Hatano--Sasa equality demoted to a structural
+isomorphism.
 
 \section{Related work, and what is not ours}
 
@@ -440,6 +902,15 @@ next step is the counterfactual: let the gradient flow through the target as
 well, which makes the update conservative by construction, and measure what
 performance changes. The magnitudes above predict that little will.
 
+The second half of the paper carries its own bounds. It is a $6\times 6$ grid
+with a tabular policy and exact expectations; Section~\ref{sec:scalar} is an
+infinite-sample limit and not a sampled algorithm. That section compares against
+detailed balance only, and loses to it asymptotically. Its seed spread is large
+relative to its mean. The positive reading in Section~\ref{sec:gap} rests on the
+single best-optimising admissible seed plus an extrapolation to zero gap; it is
+not three independent seeds at zero gap. And all of it is one reward family on
+one graph topology.
+
 \section{Reproducibility}
 
 Every number in this paper is produced by a script, and the scripts are in the
@@ -451,6 +922,35 @@ the claims we make about the released implementation as executable assertions
 pinned to commit \texttt{9059a29f}, re-run weekly, so that a claim about someone
 else's code cannot rot silently. All exact quantities are computed by dynamic
 programming over the state graph rather than sampled.
+
+The second half adds nine. \texttt{tiapkin.py} checks R1--R4 of the reduction
+and prices Remark 3. \texttt{temperature.py} builds the reduction MDP, runs the
+three arms of Table~\ref{tab:mdp} and fits the soft-family coefficient.
+\texttt{temperature\_pipeline\_check.py} drives the exact soft-optimal policy
+through the agents' own environment path, returning $\lambda_{\mathrm{eff}} =
+0.995$ at residual $0.0062$, which is the evidence that the readout's residuals
+belong to the arms. \texttt{temperature\_residual\_scale.py} measures what a
+temperature error costs and is where $0.0861$ comes from.
+\texttt{temperature\_rule\_fixedpoint.py} computes the actor-critic rule's exact
+fixed point and the $c$-to-$\lambda$ map, and is what shows the ladder never
+calibrated. \texttt{temperature\_family\_compare.py} fits both families to the
+same arm at three and six seeds. \texttt{temperature\_gap\_confound.py} rereads
+its per-seed rows against the optimisation gap and is what withdrew our family
+verdict. \texttt{temperature\_critic\_ablation.py} swaps the value head and
+excludes value resolution. \texttt{metagfn.py} meta-learns the local update rule
+under each scalar and runs the two controls and the detailed-balance comparison.
+
+\begin{sloppypar}
+One provenance note, because it affects how these can be checked.
+\texttt{temperature\us pipeline\us check.py},
+\texttt{temperature\us rule\us fixedpoint.py},
+\texttt{temperature\us residual\us scale.py},
+\texttt{temperature\us critic\us ablation.py} and
+\texttt{temperature\us family\us compare.py} were written in a concurrent session
+and were swept into commit \texttt{e6db278} by a \texttt{git add -A} whose message
+does not describe them. A \texttt{git note} on that commit records this.
+Sections~\ref{sec:instrument} and \ref{sec:gap} rest on them.
+\end{sloppypar}
 
 \begin{thebibliography}{9}
 \bibitem{oh2025disco} J.~Oh, G.~Farquhar, I.~Kemaev, D.~A.~Calian, M.~Hessel,

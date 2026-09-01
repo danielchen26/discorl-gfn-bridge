@@ -1,0 +1,118 @@
+{
+  "source": "temperature_family_compare_6seed.json",
+  "best_return": 2.2847,
+  "ceiling": 0.0861,
+  "per_seed": [
+    {
+      "seed": 0,
+      "admissible": true,
+      "gap": 0.038068006401831944,
+      "soft_lambda": 0.18573556574535355,
+      "soft_residual": 0.06494989683238298,
+      "rule_residual": 0.06260029903245501
+    },
+    {
+      "seed": 1,
+      "admissible": true,
+      "gap": 0.0659625209037813,
+      "soft_lambda": 0.25411590384340116,
+      "soft_residual": 0.209089138060695,
+      "rule_residual": 0.18600717918532697
+    },
+    {
+      "seed": 2,
+      "admissible": true,
+      "gap": 0.9372935681711119,
+      "soft_lambda": 0.621664420480557,
+      "soft_residual": 1.4234009229874842,
+      "rule_residual": 0.7091408681828888
+    },
+    {
+      "seed": 3,
+      "admissible": false,
+      "gap": 0.18227374445190136,
+      "soft_lambda": 0.029999999999999995,
+      "soft_residual": 0.041280591447761576,
+      "rule_residual": 0.0412806109764027
+    },
+    {
+      "seed": 4,
+      "admissible": true,
+      "gap": 0.3815884401154035,
+      "soft_lambda": 0.3548032922870417,
+      "soft_residual": 0.5469658281596259,
+      "rule_residual": 0.41636559660481715
+    },
+    {
+      "seed": 5,
+      "admissible": true,
+      "gap": 0.061309618484072015,
+      "soft_lambda": 0.2185396618185503,
+      "soft_residual": 0.12255780785146454,
+      "rule_residual": 0.11427208297727019
+    }
+  ],
+  "soft_fit": {
+    "slope": 1.45677233890951,
+    "intercept": 0.04095796300735076,
+    "r2": 0.9928872858525982,
+    "pearson": 0.9964372964981782
+  },
+  "rule_fit": {
+    "slope": 0.6801374603480916,
+    "intercept": 0.09578218790339935,
+    "r2": 0.9634938174740947,
+    "pearson": 0.9815772091252399
+  },
+  "leave_one_out": [
+    {
+      "dropped": null,
+      "n": 5,
+      "slope": 1.45677233890951,
+      "intercept": 0.04095796300735076,
+      "r2": 0.9928872858525982,
+      "pearson": 0.9964372964981782
+    },
+    {
+      "dropped": 0,
+      "n": 4,
+      "slope": 1.436792235248803,
+      "intercept": 0.05604766167697163,
+      "r2": 0.9928472953126212,
+      "pearson": 0.9964172295342052
+    },
+    {
+      "dropped": 1,
+      "n": 4,
+      "slope": 1.4962627063763425,
+      "intercept": 0.008946364689018715,
+      "r2": 0.9985523722934261,
+      "pearson": 0.9992759240036888
+    },
+    {
+      "dropped": 2,
+      "n": 4,
+      "slope": 1.2872748034626291,
+      "intercept": 0.0598788207437754,
+      "r2": 0.954531180584951,
+      "pearson": 0.9770011159589077
+    },
+    {
+      "dropped": 4,
+      "n": 4,
+      "slope": 1.4658178703179474,
+      "intercept": 0.0509343908483106,
+      "r2": 0.9953534337807964,
+      "pearson": 0.9976740117797978
+    },
+    {
+      "dropped": 5,
+      "n": 4,
+      "slope": 1.4524359258563946,
+      "intercept": 0.04442912499869089,
+      "r2": 0.9919804229694743,
+      "pearson": 0.9959821398847845
+    }
+  ],
+  "reading": "THE MISFIT IS THE OPTIMISATION GAP -- the residual the NEITHER FAMILY verdict rested on is predicted by how far the seed got from the achievable return, pearson +0.996 and R^2 0.993, and extrapolates to 0.0410 nats at zero gap, inside the 0.0861 ceiling. That verdict is withdrawn. Read the other way: once the rule optimises, its terminal distribution is within a 25 percent temperature error of the soft family at a coefficient near 0.19, about five times colder than the coefficient that would make it a GFlowNet."
+}
